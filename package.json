@@ -1,0 +1,20 @@
+{
+  "name": "personal",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "bun@1.2.0",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "turbo run format",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "latest",
+    "turbo": "^2.8.20",
+    "typescript": "^5.8.0",
+    "ultracite": "latest"
+  }
+}
