@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { env } from "./env";
 
 const app = new Hono();
 
@@ -11,6 +12,6 @@ app.get("/health", (c) => {
 });
 
 export default {
-  port: Number(process.env.PORT) || 3000,
+  port: env.PORT,
   fetch: app.fetch,
 };
