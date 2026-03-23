@@ -56,31 +56,34 @@ The first release ships a **Finance & Budget module**, designed to replace the e
 
 ### Backend
 
-| Technology | Purpose |
-|---|---|
-| **Bun** | Runtime & package manager |
-| **Hono** | HTTP framework with OpenAPI support |
-| **Zod** | Schema validation & type inference |
+| Technology           | Purpose                                |
+| -------------------- | -------------------------------------- |
+| **Bun**              | Runtime & package manager              |
+| **Hono**             | HTTP framework with OpenAPI support    |
+| **Zod**              | Schema validation & type inference     |
 | **OpenAPI / Scalar** | API spec generation & interactive docs |
-| **Supabase** | PostgreSQL database, Auth, Storage |
-| **TypeScript** | Type safety across all backend code |
+| **Supabase**         | PostgreSQL database, Auth, Storage     |
+| **TypeScript**       | Type safety across all backend code    |
 
 ### Frontend
 
-| Technology | Purpose |
-|---|---|
-| **React** | UI framework |
-| **Bun + Vite** | Build tooling & dev server |
-| **TypeScript** | Type safety across all frontend code |
-| **Mantine UI** | Component library & styling system |
-| **PWA** | Service worker, offline support, installable |
+| Technology          | Purpose                                      |
+| ------------------- | -------------------------------------------- |
+| **React**           | UI framework                                 |
+| **Bun + Vite**      | Build tooling & dev server                   |
+| **TypeScript**      | Type safety across all frontend code         |
+| **Mantine UI**      | Component library & styling system           |
+| **PWA**             | Service worker, offline support, installable |
+| **Tanstack Query**  | Data fetching and caching                    |
+| **Tanstack Table**  | Data table components                        |
+| **Tanstack Router** | Routing library                              |
 
 ### Tooling
 
-| Technology | Purpose |
-|---|---|
-| **Turborepo** | Monorepo task orchestration & caching |
-| **Ultracite + Biome** | Linting, formatting, import sorting |
+| Technology            | Purpose                               |
+| --------------------- | ------------------------------------- |
+| **Turborepo**         | Monorepo task orchestration & caching |
+| **Ultracite + Biome** | Linting, formatting, import sorting   |
 
 ---
 
@@ -141,9 +144,9 @@ The API is the single source of truth. The frontend never talks directly to Supa
 
 There are two roles in v1:
 
-| Role | Description |
-|---|---|
-| **Admin** | Full access. Can read, write, delete, and manage all data. |
+| Role       | Description                                                                          |
+| ---------- | ------------------------------------------------------------------------------------ |
+| **Admin**  | Full access. Can read, write, delete, and manage all data.                           |
 | **Viewer** | Read-only access. Can view data and export to Excel. Cannot create, edit, or delete. |
 
 Roles are stored in the `user_profiles` table and enforced at the API layer via middleware. Each role can be scoped per module in future versions.
@@ -165,8 +168,8 @@ Modules are enabled/disabled per user based on their role. In v1, all users with
 
 **V1 Modules:**
 
-| Module | Status |
-|---|---|
+| Module           | Status            |
+| ---------------- | ----------------- |
 | Finance & Budget | ✅ Included in v1 |
 
 Future modules are listed in [Section 13](#13-future-modules).
@@ -177,8 +180,8 @@ Future modules are listed in [Section 13](#13-future-modules).
 
 This module is the digital replacement for the existing `Budget verktyg .xlsx` workflow. The Excel file uses two sheets:
 
-- **Init** — a "master budget" with fixed monthly costs grouped into categories: Loans (*Lån*), Fixed Costs (*Fasta kostnader*), Subscriptions (*Prenumerationer*), and Other/Buffer (*Övrigt & Buffert*). Also stores the monthly net income.
-- **Mars 2026** — a monthly cash book (*Kassabok*) derived from the master budget, with a transaction log (date, description, category, type, amount, running balance).
+- **Init** — a "master budget" with fixed monthly costs grouped into categories: Loans (_Lån_), Fixed Costs (_Fasta kostnader_), Subscriptions (_Prenumerationer_), and Other/Buffer (_Övrigt & Buffert_). Also stores the monthly net income.
+- **Mars 2026** — a monthly cash book (_Kassabok_) derived from the master budget, with a transaction log (date, description, category, type, amount, running balance).
 
 The web app extends and formalises this structure significantly.
 
@@ -190,8 +193,8 @@ The master budget is the source of truth for recurring monthly budget lines. It 
 
 **Features:**
 
-- Create and manage budget categories (e.g., *Lån*, *Fasta kostnader*, *Prenumerationer*, *Övrigt & Buffert*).
-- Create budget line items (*poster*) within each category, each with a name and a default monthly amount.
+- Create and manage budget categories (e.g., _Lån_, _Fasta kostnader_, _Prenumerationer_, _Övrigt & Buffert_).
+- Create budget line items (_poster_) within each category, each with a name and a default monthly amount.
 - Set a default monthly net income value.
 - Reorder categories and line items.
 - Full CRUD for categories and line items.
@@ -229,16 +232,16 @@ Full CRUD for financial transactions within a month.
 
 **Transaction fields:**
 
-| Field | Description |
-|---|---|
-| `date` | Date of the transaction |
-| `description` | Free-text description |
-| `category` | Tag/category (see 8.5) |
-| `type` | `income` or `expense` |
-| `amount` | Amount in SEK (positive for income, positive for expenses — type determines direction) |
-| `tags` | One or more tags (see 8.5) |
-| `attachment` | Optional image/receipt upload (stored in Supabase Storage) |
-| `running_balance` | Computed: variable room minus cumulative expenses plus incomes |
+| Field             | Description                                                                            |
+| ----------------- | -------------------------------------------------------------------------------------- |
+| `date`            | Date of the transaction                                                                |
+| `description`     | Free-text description                                                                  |
+| `category`        | Tag/category (see 8.5)                                                                 |
+| `type`            | `income` or `expense`                                                                  |
+| `amount`          | Amount in SEK (positive for income, positive for expenses — type determines direction) |
+| `tags`            | One or more tags (see 8.5)                                                             |
+| `attachment`      | Optional image/receipt upload (stored in Supabase Storage)                             |
+| `running_balance` | Computed: variable room minus cumulative expenses plus incomes                         |
 
 **Features:**
 
@@ -266,7 +269,7 @@ Users can pre-register a future income or expense for a specific month before th
 
 ### 8.5 Tags & Categories
 
-- **Categories** are linked to budget line items and can also be assigned to transactions. They represent high-level groupings (e.g., *Mat*, *Nöjen*, *Transport*).
+- **Categories** are linked to budget line items and can also be assigned to transactions. They represent high-level groupings (e.g., _Mat_, _Nöjen_, _Transport_).
 - **Tags** are free-form labels that can be assigned to transactions. Multiple tags per transaction are supported.
 - Tags can be created on-the-fly when adding a transaction.
 - Tags can be managed in a dedicated settings view.
@@ -302,26 +305,27 @@ Export a monthly budget and its transactions to an `.xlsx` file.
 
 ### 8.8 Roles — Finance Module
 
-| Feature | Viewer | Admin |
-|---|---|---|
-| View master budget | ✅ | ✅ |
-| Edit master budget | ❌ | ✅ |
-| View monthly budgets | ✅ | ✅ |
-| Create / close monthly budgets | ❌ | ✅ |
-| Override line item amounts per month | ❌ | ✅ |
-| View transactions | ✅ | ✅ |
-| Create / edit / delete transactions | ❌ | ✅ |
-| Upload receipt images | ❌ | ✅ |
-| View pre-registered entries | ✅ | ✅ |
-| Create / edit / delete pre-registered entries | ❌ | ✅ |
-| Export to Excel | ✅ | ✅ |
-| Manage tags | ❌ | ✅ |
+| Feature                                       | Viewer | Admin |
+| --------------------------------------------- | ------ | ----- |
+| View master budget                            | ✅     | ✅    |
+| Edit master budget                            | ❌     | ✅    |
+| View monthly budgets                          | ✅     | ✅    |
+| Create / close monthly budgets                | ❌     | ✅    |
+| Override line item amounts per month          | ❌     | ✅    |
+| View transactions                             | ✅     | ✅    |
+| Create / edit / delete transactions           | ❌     | ✅    |
+| Upload receipt images                         | ❌     | ✅    |
+| View pre-registered entries                   | ✅     | ✅    |
+| Create / edit / delete pre-registered entries | ❌     | ✅    |
+| Export to Excel                               | ✅     | ✅    |
+| Manage tags                                   | ❌     | ✅    |
 
 ---
 
 ## 9. Data Models
 
 ### `user_profiles`
+
 ```
 id           uuid (FK → auth.users)
 role         enum: 'admin' | 'viewer'
@@ -329,6 +333,7 @@ created_at   timestamptz
 ```
 
 ### `budget_categories`
+
 ```
 id           uuid
 name         text
@@ -337,6 +342,7 @@ created_at   timestamptz
 ```
 
 ### `master_budget_items`
+
 ```
 id              uuid
 category_id     uuid (FK → budget_categories)
@@ -348,6 +354,7 @@ updated_at      timestamptz
 ```
 
 ### `master_budget_settings`
+
 ```
 id              uuid
 monthly_income  numeric
@@ -355,6 +362,7 @@ updated_at      timestamptz
 ```
 
 ### `monthly_budgets`
+
 ```
 id           uuid
 year         int
@@ -365,6 +373,7 @@ created_at   timestamptz
 ```
 
 ### `monthly_budget_items`
+
 ```
 id                   uuid
 monthly_budget_id    uuid (FK → monthly_budgets)
@@ -376,6 +385,7 @@ created_at           timestamptz
 ```
 
 ### `tags`
+
 ```
 id           uuid
 name         text (unique)
@@ -383,6 +393,7 @@ created_at   timestamptz
 ```
 
 ### `transactions`
+
 ```
 id                   uuid
 monthly_budget_id    uuid (FK → monthly_budgets)
@@ -397,6 +408,7 @@ updated_at           timestamptz
 ```
 
 ### `transaction_tags`
+
 ```
 transaction_id   uuid (FK → transactions)
 tag_id           uuid (FK → tags)
@@ -404,6 +416,7 @@ PRIMARY KEY (transaction_id, tag_id)
 ```
 
 ### `pre_registered_entries`
+
 ```
 id              uuid
 year            int
@@ -431,42 +444,42 @@ The API follows REST conventions and is fully documented via OpenAPI. Interactiv
 
 ### Finance Module Endpoints (summary)
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/budget/master` | Get master budget with all categories and items |
-| `POST` | `/budget/master/categories` | Create a budget category |
-| `PUT` | `/budget/master/categories/:id` | Update a category |
-| `DELETE` | `/budget/master/categories/:id` | Delete a category |
-| `POST` | `/budget/master/items` | Create a master budget item |
-| `PUT` | `/budget/master/items/:id` | Update a master budget item |
-| `DELETE` | `/budget/master/items/:id` | Delete a master budget item |
-| `GET` | `/budget/monthly` | List all monthly budgets |
-| `POST` | `/budget/monthly` | Create a new monthly budget (from master snapshot) |
-| `GET` | `/budget/monthly/:id` | Get a monthly budget with items and overview |
-| `PUT` | `/budget/monthly/:id` | Update monthly budget (status, income override) |
-| `PUT` | `/budget/monthly/:id/items/:itemId` | Override a line item amount for the month |
-| `GET` | `/budget/monthly/:id/transactions` | List transactions for a monthly budget |
-| `POST` | `/budget/monthly/:id/transactions` | Create a transaction |
-| `PUT` | `/budget/monthly/:id/transactions/:txId` | Update a transaction |
-| `DELETE` | `/budget/monthly/:id/transactions/:txId` | Delete a transaction |
-| `POST` | `/budget/monthly/:id/transactions/:txId/attachment` | Upload receipt image |
-| `DELETE` | `/budget/monthly/:id/transactions/:txId/attachment` | Remove receipt image |
-| `GET` | `/budget/pre-registered` | List pre-registered entries |
-| `POST` | `/budget/pre-registered` | Create a pre-registered entry |
-| `PUT` | `/budget/pre-registered/:id` | Update a pre-registered entry |
-| `DELETE` | `/budget/pre-registered/:id` | Delete a pre-registered entry |
-| `GET` | `/budget/tags` | List all tags |
-| `POST` | `/budget/tags` | Create a tag |
-| `DELETE` | `/budget/tags/:id` | Delete a tag |
-| `GET` | `/budget/export` | Export to Excel (query params: `from`, `to` as `YYYY-MM`) |
+| Method   | Path                                                | Description                                               |
+| -------- | --------------------------------------------------- | --------------------------------------------------------- |
+| `GET`    | `/budget/master`                                    | Get master budget with all categories and items           |
+| `POST`   | `/budget/master/categories`                         | Create a budget category                                  |
+| `PUT`    | `/budget/master/categories/:id`                     | Update a category                                         |
+| `DELETE` | `/budget/master/categories/:id`                     | Delete a category                                         |
+| `POST`   | `/budget/master/items`                              | Create a master budget item                               |
+| `PUT`    | `/budget/master/items/:id`                          | Update a master budget item                               |
+| `DELETE` | `/budget/master/items/:id`                          | Delete a master budget item                               |
+| `GET`    | `/budget/monthly`                                   | List all monthly budgets                                  |
+| `POST`   | `/budget/monthly`                                   | Create a new monthly budget (from master snapshot)        |
+| `GET`    | `/budget/monthly/:id`                               | Get a monthly budget with items and overview              |
+| `PUT`    | `/budget/monthly/:id`                               | Update monthly budget (status, income override)           |
+| `PUT`    | `/budget/monthly/:id/items/:itemId`                 | Override a line item amount for the month                 |
+| `GET`    | `/budget/monthly/:id/transactions`                  | List transactions for a monthly budget                    |
+| `POST`   | `/budget/monthly/:id/transactions`                  | Create a transaction                                      |
+| `PUT`    | `/budget/monthly/:id/transactions/:txId`            | Update a transaction                                      |
+| `DELETE` | `/budget/monthly/:id/transactions/:txId`            | Delete a transaction                                      |
+| `POST`   | `/budget/monthly/:id/transactions/:txId/attachment` | Upload receipt image                                      |
+| `DELETE` | `/budget/monthly/:id/transactions/:txId/attachment` | Remove receipt image                                      |
+| `GET`    | `/budget/pre-registered`                            | List pre-registered entries                               |
+| `POST`   | `/budget/pre-registered`                            | Create a pre-registered entry                             |
+| `PUT`    | `/budget/pre-registered/:id`                        | Update a pre-registered entry                             |
+| `DELETE` | `/budget/pre-registered/:id`                        | Delete a pre-registered entry                             |
+| `GET`    | `/budget/tags`                                      | List all tags                                             |
+| `POST`   | `/budget/tags`                                      | Create a tag                                              |
+| `DELETE` | `/budget/tags/:id`                                  | Delete a tag                                              |
+| `GET`    | `/budget/export`                                    | Export to Excel (query params: `from`, `to` as `YYYY-MM`) |
 
 ### Auth Endpoints
 
 Authentication is handled by Supabase Auth directly. The API provides:
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/auth/me` | Get current user profile and role |
+| Method | Path       | Description                       |
+| ------ | ---------- | --------------------------------- |
+| `GET`  | `/auth/me` | Get current user profile and role |
 
 ---
 
@@ -484,6 +497,7 @@ Both apps are containerized independently.
 ### Environment Variables
 
 **API (`apps/api`):**
+
 ```
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
@@ -491,6 +505,7 @@ PORT=3000
 ```
 
 **Web (`apps/web`):**
+
 ```
 VITE_API_URL=
 VITE_SUPABASE_URL=
@@ -549,14 +564,14 @@ Hosting provider is **not yet decided**. The Docker setup ensures portability ac
 
 The following modules are candidates for future development. They are **not** part of v1 scope.
 
-| Module | Description |
-|---|---|
-| **Health & Fitness** | Track workouts, weight, sleep, habits |
-| **Notes / Journal** | Personal notes with tagging and search |
-| **Tasks / To-do** | Personal task and project tracking |
+| Module                    | Description                                                    |
+| ------------------------- | -------------------------------------------------------------- |
+| **Health & Fitness**      | Track workouts, weight, sleep, habits                          |
+| **Notes / Journal**       | Personal notes with tagging and search                         |
+| **Tasks / To-do**         | Personal task and project tracking                             |
 | **Subscriptions Tracker** | Manage and track recurring subscriptions (extends budget data) |
-| **Net Worth Tracker** | Assets, liabilities, and net worth over time |
+| **Net Worth Tracker**     | Assets, liabilities, and net worth over time                   |
 
 ---
 
-*End of PRD v1.0*
+_End of PRD v1.0_
