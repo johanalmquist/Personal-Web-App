@@ -1,2 +1,26 @@
+# Excel files
 Budget verktyg .xlsx
+
+# OS
 .DS_Store
+
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Turbo
+.turbo/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Bun
+bun.lockb
+
+# TypeScript
+*.tsbuildinfo
