@@ -2,7 +2,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
 import { env } from "./env";
 import { type AppVariables, authMiddleware } from "./middleware/auth";
-import { authRouter } from "./routes/auth";
+import { authRouter, publicAuthRouter } from "./routes/auth";
 import { healthRouter } from "./routes/health";
 
 const app = new OpenAPIHono();
@@ -23,10 +23,10 @@ app.doc("/api/openapi.json", {
   servers: [{ url: "/", description: "Current server" }],
 });
 
-app.openAPIRegistry.registerComponent("securitySchemes", "bearerAuth", {
-  type: "http",
-  scheme: "bearer",
-  bearerFormat: "JWT",
+app.openAPIRegistry.registerComponent("securitySchemes", "BearerAuth", {
+  type: "oauth2",
+  flows: { password: { tokenUrl: "/api/v1/auth/token", scopes: {} } },
+  description: "Login with Supabase email/password. Use the Authorize button to get a token.",
 });
 
 app.get(
@@ -34,8 +34,15 @@ app.get(
   apiReference({
     url: "/api/openapi.json",
     pageTitle: "Personal Finance API Docs",
+    authentication: {
+      preferredSecurityScheme: "BearerAuth",
+    },
   }),
 );
+
+// ─── Public /api/v1 routes (no auth) ─────────────────────────────────────────
+
+app.route("/api/v1", publicAuthRouter);
 
 // ─── Protected /api/v1 routes ─────────────────────────────────────────────────
 
