@@ -1,27 +1,51 @@
-import { Hono } from "hono";
+import { OpenAPIHono } from "@hono/zod-openapi";
+import { apiReference } from "@scalar/hono-api-reference";
 import { env } from "./env";
-import { supabase } from "./lib/supabase";
+import { type AppVariables, authMiddleware } from "./middleware/auth";
+import { authRouter } from "./routes/auth";
+import { healthRouter } from "./routes/health";
 
-const app = new Hono();
+const app = new OpenAPIHono();
 
-app.get("/", (c) => {
-  return c.json({ message: "Hello from the API!", status: "ok" });
+// ─── Public routes ────────────────────────────────────────────────────────────
+
+app.route("/", healthRouter);
+
+// ─── OpenAPI spec + Scalar docs ───────────────────────────────────────────────
+
+app.doc("/api/openapi.json", {
+  openapi: "3.1.0",
+  info: {
+    title: "Personal Finance API",
+    version: "1.0.0",
+    description: "Backend API for the personal finance web app.",
+  },
+  servers: [{ url: "/", description: "Current server" }],
 });
 
-app.get("/health", (c) => {
-  return c.json({ status: "healthy", timestamp: new Date().toISOString() });
+app.openAPIRegistry.registerComponent("securitySchemes", "bearerAuth", {
+  type: "http",
+  scheme: "bearer",
+  bearerFormat: "JWT",
 });
 
-app.get("/health/db", async (c) => {
-  const { error } = await supabase.auth.admin.listUsers({
-    page: 1,
-    perPage: 1,
-  });
-  if (error) {
-    return c.json({ status: "unhealthy", error: error.message }, 503);
-  }
-  return c.json({ status: "healthy" });
-});
+app.get(
+  "/docs",
+  apiReference({
+    url: "/api/openapi.json",
+    pageTitle: "Personal Finance API Docs",
+  }),
+);
+
+// ─── Protected /api/v1 routes ─────────────────────────────────────────────────
+
+const v1 = new OpenAPIHono<{ Variables: AppVariables }>();
+v1.use("*", authMiddleware);
+v1.route("/", authRouter);
+
+app.route("/api/v1", v1);
+
+// ─── Server ───────────────────────────────────────────────────────────────────
 
 export default {
   port: env.PORT,

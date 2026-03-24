@@ -11,7 +11,9 @@
     "format": "biome format --write ."
   },
   "dependencies": {
+    "@hono/zod-openapi": "^1.2.3",
     "@personal/types": "workspace:*",
+    "@scalar/hono-api-reference": "^0.10.4",
     "@supabase/supabase-js": "latest",
     "@t3-oss/env-core": "latest",
     "hono": "^4.7.0",
