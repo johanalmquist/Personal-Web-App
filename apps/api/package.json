@@ -17,7 +17,7 @@
     "@supabase/supabase-js": "latest",
     "@t3-oss/env-core": "latest",
     "hono": "^4.7.0",
-    "zod": "^3.24.0"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "bun-types": "latest"
