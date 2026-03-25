@@ -6,6 +6,8 @@ import { authRouter, publicAuthRouter } from "./routes/auth";
 import { healthRouter } from "./routes/health";
 import { masterBudgetRouter } from "./routes/master-budget";
 import { monthlyBudgetRouter } from "./routes/monthly-budget";
+import { preRegisteredRouter } from "./routes/pre-registered";
+import { tagsRouter } from "./routes/tags";
 import { transactionsRouter } from "./routes/transactions";
 
 const app = new OpenAPIHono();
@@ -54,6 +56,8 @@ v1.use("*", authMiddleware);
 v1.route("/", authRouter);
 v1.route("/", masterBudgetRouter);
 v1.route("/", monthlyBudgetRouter);
+v1.route("/", preRegisteredRouter);
+v1.route("/", tagsRouter);
 v1.route("/", transactionsRouter);
 
 app.route("/api/v1", v1);

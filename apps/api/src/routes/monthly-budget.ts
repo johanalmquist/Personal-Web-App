@@ -127,6 +127,49 @@ monthlyBudgetRouter.openapi(
       await supabase.from("monthly_budget_items").insert(snapshotItems);
     }
 
+    // Auto-import pre-registered entries for this year/month
+    const { data: entries } = await supabase
+      .from("pre_registered_entries")
+      .select("*")
+      .eq("year", year)
+      .eq("month", month)
+      .eq("imported", false);
+
+    if (entries && entries.length > 0) {
+      const dateStr = `${year}-${String(month).padStart(2, "0")}-01`;
+      const txInserts = entries.map((e) => ({
+        monthly_budget_id: budget.id,
+        date: dateStr,
+        description: e.description,
+        type: e.type,
+        amount: e.amount,
+      }));
+
+      const { data: insertedTxs } = await supabase
+        .from("transactions")
+        .insert(txInserts)
+        .select("id");
+
+      if (insertedTxs) {
+        const tagRows = entries
+          .map((e, i) =>
+            e.tag_id && insertedTxs[i]
+              ? { tag_id: e.tag_id, transaction_id: insertedTxs[i].id }
+              : null,
+          )
+          .filter((r): r is { tag_id: string; transaction_id: string } => r !== null);
+
+        if (tagRows.length > 0) {
+          await supabase.from("transaction_tags").insert(tagRows);
+        }
+      }
+
+      await supabase
+        .from("pre_registered_entries")
+        .update({ imported: true })
+        .in("id", entries.map((e) => e.id));
+    }
+
     return c.json({ ...budget, income: Number(budget.income) }, 201 as const);
   },
 );

@@ -186,3 +186,55 @@ export const AttachmentResponseSchema = z.object({
   signed_url: z.string(),
 });
 export type AttachmentResponse = z.infer<typeof AttachmentResponseSchema>;
+
+// ─── Tags ──────────────────────────────────────────────────────────────────────
+
+export const TagSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  created_at: z.string(),
+});
+export type Tag = z.infer<typeof TagSchema>;
+
+export const CreateTagSchema = z.object({
+  name: z.string().min(1),
+});
+export type CreateTag = z.infer<typeof CreateTagSchema>;
+
+// ─── Pre-registered Entries ────────────────────────────────────────────────────
+
+export const PreRegisteredEntrySchema = z.object({
+  id: z.string().uuid(),
+  year: z.number().int(),
+  month: z.number().int().min(1).max(12),
+  description: z.string(),
+  type: z.enum(["income", "expense"]),
+  amount: z.number(),
+  category_id: z.string().uuid().nullable(),
+  tag_id: z.string().uuid().nullable(),
+  imported: z.boolean(),
+  created_at: z.string(),
+});
+export type PreRegisteredEntry = z.infer<typeof PreRegisteredEntrySchema>;
+
+export const CreatePreRegisteredEntrySchema = z.object({
+  year: z.number().int().min(2000).max(2100),
+  month: z.number().int().min(1).max(12),
+  description: z.string().min(1),
+  type: z.enum(["income", "expense"]),
+  amount: z.number().min(0),
+  category_id: z.string().uuid().nullable().optional(),
+  tag_id: z.string().uuid().nullable().optional(),
+});
+export type CreatePreRegisteredEntry = z.infer<typeof CreatePreRegisteredEntrySchema>;
+
+export const UpdatePreRegisteredEntrySchema = z.object({
+  year: z.number().int().min(2000).max(2100).optional(),
+  month: z.number().int().min(1).max(12).optional(),
+  description: z.string().min(1).optional(),
+  type: z.enum(["income", "expense"]).optional(),
+  amount: z.number().min(0).optional(),
+  category_id: z.string().uuid().nullable().optional(),
+  tag_id: z.string().uuid().nullable().optional(),
+});
+export type UpdatePreRegisteredEntry = z.infer<typeof UpdatePreRegisteredEntrySchema>;
