@@ -85,3 +85,56 @@ export const MasterBudgetResponseSchema = z.object({
 });
 
 export type MasterBudgetResponse = z.infer<typeof MasterBudgetResponseSchema>;
+
+// ─── Monthly Budgets ───────────────────────────────────────────────────────────
+
+export const MonthlyBudgetSchema = z.object({
+  id: z.string().uuid(),
+  year: z.number().int(),
+  month: z.number().int().min(1).max(12),
+  status: z.enum(["open", "closed"]),
+  income: z.number(),
+  created_at: z.string(),
+});
+export type MonthlyBudget = z.infer<typeof MonthlyBudgetSchema>;
+
+export const CreateMonthlyBudgetSchema = z.object({
+  year: z.number().int().min(2000).max(2100),
+  month: z.number().int().min(1).max(12),
+});
+export type CreateMonthlyBudget = z.infer<typeof CreateMonthlyBudgetSchema>;
+
+export const UpdateMonthlyBudgetSchema = z.object({
+  status: z.enum(["open", "closed"]).optional(),
+  income: z.number().min(0).optional(),
+});
+export type UpdateMonthlyBudget = z.infer<typeof UpdateMonthlyBudgetSchema>;
+
+export const MonthlyBudgetItemSchema = z.object({
+  id: z.string().uuid(),
+  category_name: z.string(),
+  item_name: z.string(),
+  budgeted_amount: z.number(),
+  created_at: z.string(),
+});
+export type MonthlyBudgetItem = z.infer<typeof MonthlyBudgetItemSchema>;
+
+export const UpdateMonthlyBudgetItemSchema = z.object({
+  budgeted_amount: z.number().min(0),
+});
+export type UpdateMonthlyBudgetItem = z.infer<typeof UpdateMonthlyBudgetItemSchema>;
+
+export const MonthlyBudgetOverviewSchema = z.object({
+  income: z.number(),
+  total_budgeted: z.number(),
+  variable_room: z.number(),
+  total_transactions: z.number(),
+  actual_remaining: z.number(),
+});
+export type MonthlyBudgetOverview = z.infer<typeof MonthlyBudgetOverviewSchema>;
+
+export const MonthlyBudgetDetailSchema = MonthlyBudgetSchema.extend({
+  items: z.array(MonthlyBudgetItemSchema),
+  overview: MonthlyBudgetOverviewSchema,
+});
+export type MonthlyBudgetDetail = z.infer<typeof MonthlyBudgetDetailSchema>;
