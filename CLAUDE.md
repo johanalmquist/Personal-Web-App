@@ -6,6 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **greenfield project** — only the PRD and issue plan exist so far. No code has been written yet. Refer to `PRD.md` for full requirements and `issue-order.md` for the recommended implementation sequence.
 
+UI and UX decisions must follow `docs/design.md`.
+If implementation choices are ambiguous, prefer consistency with `docs/design.md`.
+
 ## Tech Stack
 
 **Backend (`apps/api`):** Bun + Hono + Zod + OpenAPI/Scalar + Supabase
@@ -39,6 +42,7 @@ bun run typecheck        # TypeScript check across all packages
 ```
 
 Within a specific app:
+
 ```bash
 cd apps/api && bun run dev
 cd apps/web && bun run dev
@@ -67,6 +71,7 @@ cd apps/web && bun run dev
 ## Environment Variables
 
 **`apps/api`:**
+
 ```
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
@@ -74,6 +79,7 @@ PORT=3000
 ```
 
 **`apps/web`:**
+
 ```
 VITE_API_URL=
 VITE_SUPABASE_URL=
@@ -89,6 +95,7 @@ RLS is enabled on all tables. Supabase Storage bucket `receipts` holds transacti
 ## Implementation Order
 
 See `issue-order.md` for the full phased plan. High-level:
+
 1. Biome/Ultracite config → Supabase setup
 2. DB migrations + RLS + Storage bucket
 3. JWT auth middleware + OpenAPI setup
