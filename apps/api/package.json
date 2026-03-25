@@ -16,6 +16,7 @@
     "@scalar/hono-api-reference": "^0.10.4",
     "@supabase/supabase-js": "latest",
     "@t3-oss/env-core": "latest",
+    "exceljs": "^4.4.0",
     "hono": "^4.7.0",
     "zod": "^4.0.0"
   },
