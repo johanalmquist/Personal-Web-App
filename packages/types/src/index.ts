@@ -138,3 +138,51 @@ export const MonthlyBudgetDetailSchema = MonthlyBudgetSchema.extend({
   overview: MonthlyBudgetOverviewSchema,
 });
 export type MonthlyBudgetDetail = z.infer<typeof MonthlyBudgetDetailSchema>;
+
+// ─── Transactions ──────────────────────────────────────────────────────────────
+
+export const TransactionSchema = z.object({
+  id: z.string().uuid(),
+  monthly_budget_id: z.string().uuid(),
+  date: z.string(),
+  description: z.string(),
+  type: z.enum(["income", "expense"]),
+  amount: z.number(),
+  monthly_item_id: z.string().uuid().nullable(),
+  attachment_path: z.string().nullable(),
+  tags: z.array(z.string().uuid()),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type Transaction = z.infer<typeof TransactionSchema>;
+
+export const TransactionWithBalanceSchema = TransactionSchema.extend({
+  running_balance: z.number(),
+});
+export type TransactionWithBalance = z.infer<typeof TransactionWithBalanceSchema>;
+
+export const CreateTransactionSchema = z.object({
+  date: z.string().min(1),
+  description: z.string().min(1),
+  type: z.enum(["income", "expense"]),
+  amount: z.number().min(0),
+  monthly_item_id: z.string().uuid().nullable().optional(),
+  tags: z.array(z.string().uuid()).optional().default([]),
+});
+export type CreateTransaction = z.infer<typeof CreateTransactionSchema>;
+
+export const UpdateTransactionSchema = z.object({
+  date: z.string().min(1).optional(),
+  description: z.string().min(1).optional(),
+  type: z.enum(["income", "expense"]).optional(),
+  amount: z.number().min(0).optional(),
+  monthly_item_id: z.string().uuid().nullable().optional(),
+  tags: z.array(z.string().uuid()).optional(),
+});
+export type UpdateTransaction = z.infer<typeof UpdateTransactionSchema>;
+
+export const AttachmentResponseSchema = z.object({
+  attachment_path: z.string(),
+  signed_url: z.string(),
+});
+export type AttachmentResponse = z.infer<typeof AttachmentResponseSchema>;
