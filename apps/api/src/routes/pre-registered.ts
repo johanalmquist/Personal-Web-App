@@ -7,11 +7,15 @@ import {
 import { supabase } from "../lib/supabase";
 import { type AppVariables, requireRole } from "../middleware/auth";
 
-export const preRegisteredRouter = new OpenAPIHono<{ Variables: AppVariables }>();
+export const preRegisteredRouter = new OpenAPIHono<{
+  Variables: AppVariables;
+}>();
 
 // ─── Shared schemas ────────────────────────────────────────────────────────────
 
-const ErrorSchema = z.object({ error: z.string() }).openapi("PreRegisteredError");
+const ErrorSchema = z
+  .object({ error: z.string() })
+  .openapi("PreRegisteredError");
 const IdParamSchema = z.object({ id: z.string().uuid() });
 
 // ─── Helper ────────────────────────────────────────────────────────────────────
@@ -45,7 +49,9 @@ preRegisteredRouter.openapi(
     responses: {
       200: {
         description: "List of pre-registered entries",
-        content: { "application/json": { schema: z.array(PreRegisteredEntrySchema) } },
+        content: {
+          "application/json": { schema: z.array(PreRegisteredEntrySchema) },
+        },
       },
     },
   }),
@@ -56,8 +62,11 @@ preRegisteredRouter.openapi(
       .order("year")
       .order("month");
 
-    return c.json((data ?? []).map((r) => mapEntry(r as EntryRow)), 200 as const);
-  },
+    return c.json(
+      (data ?? []).map((r) => mapEntry(r as EntryRow)),
+      200 as const
+    );
+  }
 );
 
 // ─── POST /budget/pre-registered ──────────────────────────────────────────────
@@ -70,15 +79,26 @@ preRegisteredRouter.openapi(
     summary: "Create a pre-registered entry [admin only]",
     security: [{ BearerAuth: [] }],
     request: {
-      body: { required: true, content: { "application/json": { schema: CreatePreRegisteredEntrySchema } } },
+      body: {
+        required: true,
+        content: {
+          "application/json": { schema: CreatePreRegisteredEntrySchema },
+        },
+      },
     },
     responses: {
       201: {
         description: "Created entry",
         content: { "application/json": { schema: PreRegisteredEntrySchema } },
       },
-      400: { description: "Validation error", content: { "application/json": { schema: ErrorSchema } } },
-      403: { description: "Forbidden", content: { "application/json": { schema: ErrorSchema } } },
+      400: {
+        description: "Validation error",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      403: {
+        description: "Forbidden",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -99,7 +119,7 @@ preRegisteredRouter.openapi(
     }
 
     return c.json(mapEntry(data as EntryRow), 201 as const);
-  },
+  }
 );
 
 // ─── PUT /budget/pre-registered/:id ───────────────────────────────────────────
@@ -115,15 +135,26 @@ preRegisteredRouter.openapi(
     security: [{ BearerAuth: [] }],
     request: {
       params: IdParamSchema,
-      body: { required: true, content: { "application/json": { schema: UpdatePreRegisteredEntrySchema } } },
+      body: {
+        required: true,
+        content: {
+          "application/json": { schema: UpdatePreRegisteredEntrySchema },
+        },
+      },
     },
     responses: {
       200: {
         description: "Updated entry",
         content: { "application/json": { schema: PreRegisteredEntrySchema } },
       },
-      403: { description: "Forbidden", content: { "application/json": { schema: ErrorSchema } } },
-      404: { description: "Not found", content: { "application/json": { schema: ErrorSchema } } },
+      403: {
+        description: "Forbidden",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      404: {
+        description: "Not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -142,7 +173,7 @@ preRegisteredRouter.openapi(
     }
 
     return c.json(mapEntry(data as EntryRow), 200 as const);
-  },
+  }
 );
 
 // ─── DELETE /budget/pre-registered/:id ────────────────────────────────────────
@@ -157,8 +188,14 @@ preRegisteredRouter.openapi(
     request: { params: IdParamSchema },
     responses: {
       204: { description: "Deleted" },
-      403: { description: "Forbidden", content: { "application/json": { schema: ErrorSchema } } },
-      404: { description: "Not found", content: { "application/json": { schema: ErrorSchema } } },
+      403: {
+        description: "Forbidden",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      404: {
+        description: "Not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -174,5 +211,5 @@ preRegisteredRouter.openapi(
     }
 
     return new Response(null, { status: 204 });
-  },
+  }
 );

@@ -1,5 +1,6 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { apiReference } from "@scalar/hono-api-reference";
+import { cors } from "hono/cors";
 import { env } from "./env";
 import { type AppVariables, authMiddleware } from "./middleware/auth";
 import { authRouter, publicAuthRouter } from "./routes/auth";
@@ -12,6 +13,10 @@ import { tagsRouter } from "./routes/tags";
 import { transactionsRouter } from "./routes/transactions";
 
 const app = new OpenAPIHono();
+
+// ─── Set CORS headers ────────────────────────────────────────────────────────
+
+app.use(cors()); // Allow all origins
 
 // ─── Public routes ────────────────────────────────────────────────────────────
 
@@ -32,7 +37,8 @@ app.doc("/api/openapi.json", {
 app.openAPIRegistry.registerComponent("securitySchemes", "BearerAuth", {
   type: "oauth2",
   flows: { password: { tokenUrl: "/api/v1/auth/token", scopes: {} } },
-  description: "Login with Supabase email/password. Use the Authorize button to get a token.",
+  description:
+    "Login with Supabase email/password. Use the Authorize button to get a token.",
 });
 
 app.get(
@@ -43,7 +49,7 @@ app.get(
     authentication: {
       preferredSecurityScheme: "BearerAuth",
     },
-  }),
+  })
 );
 
 // ─── Public /api/v1 routes (no auth) ─────────────────────────────────────────

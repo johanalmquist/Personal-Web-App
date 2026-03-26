@@ -29,7 +29,7 @@ tagsRouter.openapi(
   async (c) => {
     const { data } = await supabase.from("tags").select("*").order("name");
     return c.json(data ?? [], 200 as const);
-  },
+  }
 );
 
 // ─── POST /budget/tags ─────────────────────────────────────────────────────────
@@ -42,15 +42,24 @@ tagsRouter.openapi(
     summary: "Create a tag [admin only]",
     security: [{ BearerAuth: [] }],
     request: {
-      body: { required: true, content: { "application/json": { schema: CreateTagSchema } } },
+      body: {
+        required: true,
+        content: { "application/json": { schema: CreateTagSchema } },
+      },
     },
     responses: {
       201: {
         description: "Created tag",
         content: { "application/json": { schema: TagSchema } },
       },
-      403: { description: "Forbidden", content: { "application/json": { schema: ErrorSchema } } },
-      409: { description: "Tag name already exists", content: { "application/json": { schema: ErrorSchema } } },
+      403: {
+        description: "Forbidden",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      409: {
+        description: "Tag name already exists",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -60,7 +69,11 @@ tagsRouter.openapi(
 
     const { name } = c.req.valid("json");
 
-    const { data, error } = await supabase.from("tags").insert({ name }).select().single();
+    const { data, error } = await supabase
+      .from("tags")
+      .insert({ name })
+      .select()
+      .single();
 
     if (error || !data) {
       const isUnique = error?.code === "23505";
@@ -71,7 +84,7 @@ tagsRouter.openapi(
     }
 
     return c.json(data, 201 as const);
-  },
+  }
 );
 
 // ─── DELETE /budget/tags/:id ───────────────────────────────────────────────────
@@ -88,8 +101,14 @@ tagsRouter.openapi(
     request: { params: IdParamSchema },
     responses: {
       204: { description: "Deleted" },
-      403: { description: "Forbidden", content: { "application/json": { schema: ErrorSchema } } },
-      404: { description: "Not found", content: { "application/json": { schema: ErrorSchema } } },
+      403: {
+        description: "Forbidden",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      404: {
+        description: "Not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -105,5 +124,5 @@ tagsRouter.openapi(
     }
 
     return new Response(null, { status: 204 });
-  },
+  }
 );

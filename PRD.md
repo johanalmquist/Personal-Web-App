@@ -77,6 +77,7 @@ The first release ships a **Finance & Budget module**, designed to replace the e
 | **Tanstack Query**  | Data fetching and caching                    |
 | **Tanstack Table**  | Data table components                        |
 | **Tanstack Router** | Routing library                              |
+| **Tanstack Form**   | Form management library                      |
 
 ### Tooling
 

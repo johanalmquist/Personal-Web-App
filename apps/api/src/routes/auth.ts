@@ -71,9 +71,9 @@ publicAuthRouter.openapi(
         token_type: "bearer" as const,
         expires_in: data.session.expires_in,
       },
-      200 as const,
+      200 as const
     );
-  },
+  }
 );
 
 // ─── Protected auth router (behind auth middleware) ───────────────────────────
@@ -82,7 +82,10 @@ export const authRouter = new OpenAPIHono<{ Variables: AppVariables }>();
 
 const MeResponseSchema = z
   .object({
-    id: z.string().uuid().openapi({ example: "550e8400-e29b-41d4-a716-446655440000" }),
+    id: z
+      .string()
+      .uuid()
+      .openapi({ example: "550e8400-e29b-41d4-a716-446655440000" }),
     email: z.string().email().openapi({ example: "user@example.com" }),
     role: z.enum(["admin", "viewer"]).openapi({ example: "viewer" }),
   })
@@ -115,5 +118,5 @@ authRouter.openapi(
       email: user?.email ?? "",
       role,
     });
-  },
+  }
 );
