@@ -1,45 +1,43 @@
-import { type FormEvent, useEffect, useState } from "react";
+import { useForm } from "@tanstack/react-form";
+import { useState } from "react";
+import { z } from "zod";
 import { useAuth } from "../contexts/auth-context";
 
-type FormState = "default" | "loading" | "error";
+const loginSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
 const LAST_EMAIL_KEY = "lastEmail";
 
 export function LoginPage() {
   const { signIn } = useAuth();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [formState, setFormState] = useState<FormState>("default");
-  const [errorMessage, setErrorMessage] = useState("Invalid email or password");
+  const [serverError, setServerError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const saved = localStorage.getItem(LAST_EMAIL_KEY);
-    if (saved) {
-      setEmail(saved);
-    }
-  }, []);
+  const form = useForm({
+    defaultValues: {
+      email: localStorage.getItem(LAST_EMAIL_KEY) ?? "",
+      password: "",
+    },
+    validators: { onSubmit: loginSchema },
+    onSubmit: async ({ value }) => {
+      setServerError(null);
+      localStorage.setItem(LAST_EMAIL_KEY, value.email);
+      const { error } = await signIn(value.email, value.password);
+      if (error) {
+        setServerError(error.message || "Invalid email or password");
+      }
+      // On success: auth state change will update session; routing handled in JOH-25
+    },
+  });
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setFormState("loading");
-    localStorage.setItem(LAST_EMAIL_KEY, email);
-
-    const { error } = await signIn(email, password);
-    if (error) {
-      setFormState("error");
-      setErrorMessage(error.message || "Invalid email or password");
-      setPassword("");
-    }
-    // On success: auth state change will update session; routing handled in JOH-25
-  }
-
-  const isLoading = formState === "loading";
-  const isError = formState === "error";
+  const isLoading = form.state.isSubmitting;
+  const isError = serverError !== null;
 
   return (
     <div style={styles.page}>
-      {/* Background dot grid via inline style — using ::before equivalent */}
+      {/* Background dot grid */}
       <div style={styles.dotGrid} />
 
       {/* Ambient glow orbs */}
@@ -135,7 +133,13 @@ export function LoginPage() {
             Enter your credentials to access your account
           </div>
 
-          <form noValidate onSubmit={handleSubmit}>
+          <form
+            noValidate
+            onSubmit={(e) => {
+              e.preventDefault();
+              form.handleSubmit();
+            }}
+          >
             {/* Error banner */}
             {isError && (
               <div style={styles.errorBanner}>
@@ -149,7 +153,7 @@ export function LoginPage() {
                   <line x1="12" x2="12.01" y1="16" y2="16" />
                 </svg>
                 <div>
-                  <div style={styles.errorBannerText}>{errorMessage}</div>
+                  <div style={styles.errorBannerText}>{serverError}</div>
                   <div style={styles.errorBannerSub}>
                     Please check your credentials and try again.
                   </div>
@@ -162,38 +166,42 @@ export function LoginPage() {
               <label htmlFor="login-email" style={styles.fieldLabel}>
                 Email address
               </label>
-              <div style={styles.fieldInputWrap}>
-                <div
-                  style={{
-                    ...styles.fieldIcon,
-                    ...(isError ? styles.fieldIconError : {}),
-                  }}
-                >
-                  <svg
-                    aria-hidden="true"
-                    style={styles.fieldIconSvg}
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
-                    <polyline points="22,6 12,13 2,6" />
-                  </svg>
-                </div>
-                <input
-                  autoComplete="email"
-                  id="login-email"
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  readOnly={isLoading}
-                  required
-                  style={{
-                    ...styles.fieldInput,
-                    ...(isError ? styles.fieldInputError : {}),
-                    ...(email ? styles.fieldInputHasValue : {}),
-                  }}
-                  type="email"
-                  value={email}
-                />
-              </div>
+              <form.Field name="email">
+                {(field) => (
+                  <div style={styles.fieldInputWrap}>
+                    <div
+                      style={{
+                        ...styles.fieldIcon,
+                        ...(isError ? styles.fieldIconError : {}),
+                      }}
+                    >
+                      <svg
+                        aria-hidden="true"
+                        style={styles.fieldIconSvg}
+                        viewBox="0 0 24 24"
+                      >
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                        <polyline points="22,6 12,13 2,6" />
+                      </svg>
+                    </div>
+                    <input
+                      autoComplete="email"
+                      id="login-email"
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="you@example.com"
+                      readOnly={isLoading}
+                      style={{
+                        ...styles.fieldInput,
+                        ...(isError ? styles.fieldInputError : {}),
+                        ...(field.state.value ? styles.fieldInputHasValue : {}),
+                      }}
+                      type="email"
+                      value={field.state.value}
+                    />
+                  </div>
+                )}
+              </form.Field>
             </div>
 
             {/* Password field */}
@@ -201,79 +209,90 @@ export function LoginPage() {
               <label htmlFor="login-password" style={styles.fieldLabel}>
                 Password
               </label>
-              <div style={styles.fieldInputWrap}>
-                <div
-                  style={{
-                    ...styles.fieldIcon,
-                    ...(isError ? styles.fieldIconError : {}),
-                  }}
-                >
-                  <svg
-                    aria-hidden="true"
-                    style={styles.fieldIconSvg}
-                    viewBox="0 0 24 24"
-                  >
-                    <rect height="11" rx="2" ry="2" width="18" x="3" y="11" />
-                    <path d="M7 11V7a5 5 0 0110 0v4" />
-                  </svg>
-                </div>
-                <input
-                  autoComplete="current-password"
-                  id="login-password"
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  readOnly={isLoading}
-                  required
-                  style={{
-                    ...styles.fieldInput,
-                    paddingRight: "42px",
-                    ...(isError ? styles.fieldInputError : {}),
-                  }}
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                />
-                <button
-                  onClick={() => setShowPassword((v) => !v)}
-                  style={styles.pwToggle}
-                  tabIndex={-1}
-                  type="button"
-                >
-                  {showPassword ? (
-                    <svg
-                      aria-hidden="true"
-                      style={styles.fieldIconSvg}
-                      viewBox="0 0 24 24"
+              <form.Field name="password">
+                {(field) => (
+                  <div style={styles.fieldInputWrap}>
+                    <div
+                      style={{
+                        ...styles.fieldIcon,
+                        ...(isError ? styles.fieldIconError : {}),
+                      }}
                     >
-                      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
-                      <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
-                      <line x1="1" x2="23" y1="1" y2="23" />
-                    </svg>
-                  ) : (
-                    <svg
-                      aria-hidden="true"
-                      style={styles.fieldIconSvg}
-                      viewBox="0 0 24 24"
+                      <svg
+                        aria-hidden="true"
+                        style={styles.fieldIconSvg}
+                        viewBox="0 0 24 24"
+                      >
+                        <rect
+                          height="11"
+                          rx="2"
+                          ry="2"
+                          width="18"
+                          x="3"
+                          y="11"
+                        />
+                        <path d="M7 11V7a5 5 0 0110 0v4" />
+                      </svg>
+                    </div>
+                    <input
+                      autoComplete="current-password"
+                      id="login-password"
+                      onBlur={field.handleBlur}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                      placeholder="Enter your password"
+                      readOnly={isLoading}
+                      style={{
+                        ...styles.fieldInput,
+                        paddingRight: "42px",
+                        ...(isError ? styles.fieldInputError : {}),
+                      }}
+                      type={showPassword ? "text" : "password"}
+                      value={field.state.value}
+                    />
+                    <button
+                      onClick={() => setShowPassword((v) => !v)}
+                      style={styles.pwToggle}
+                      tabIndex={-1}
+                      type="button"
                     >
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                      <circle cx="12" cy="12" r="3" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-              {isError && (
-                <div style={styles.fieldError}>
-                  <svg
-                    aria-hidden="true"
-                    style={styles.fieldErrorIcon}
-                    viewBox="0 0 24 24"
-                  >
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="15" x2="9" y1="9" y2="15" />
-                    <line x1="9" x2="15" y1="9" y2="15" />
-                  </svg>
-                  Password is incorrect
-                </div>
-              )}
+                      {showPassword ? (
+                        <svg
+                          aria-hidden="true"
+                          style={styles.fieldIconSvg}
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
+                          <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
+                          <line x1="1" x2="23" y1="1" y2="23" />
+                        </svg>
+                      ) : (
+                        <svg
+                          aria-hidden="true"
+                          style={styles.fieldIconSvg}
+                          viewBox="0 0 24 24"
+                        >
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                    {isError && (
+                      <div style={styles.fieldError}>
+                        <svg
+                          aria-hidden="true"
+                          style={styles.fieldErrorIcon}
+                          viewBox="0 0 24 24"
+                        >
+                          <circle cx="12" cy="12" r="10" />
+                          <line x1="15" x2="9" y1="9" y2="15" />
+                          <line x1="9" x2="15" y1="9" y2="15" />
+                        </svg>
+                        Password is incorrect
+                      </div>
+                    )}
+                  </div>
+                )}
+              </form.Field>
             </div>
 
             {/* Forgot password */}
