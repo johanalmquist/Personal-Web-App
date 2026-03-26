@@ -240,9 +240,6 @@ export function MasterBudgetPage() {
       <IncomeCard
         isAdmin={isAdmin}
         monthlyIncome={data?.settings.monthly_income ?? 0}
-        onEditIncome={() => {
-          // TODO: implement edit income modal
-        }}
         totalFixed={totalFixed}
         variableRoom={variableRoom}
       />

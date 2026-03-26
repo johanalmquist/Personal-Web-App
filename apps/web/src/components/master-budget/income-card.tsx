@@ -1,10 +1,12 @@
-import { IconTrendingUp } from "@tabler/icons-react";
+import { IconCheck, IconTrendingUp, IconX } from "@tabler/icons-react";
+import type { KeyboardEvent } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useUpdateMasterSettings } from "../../hooks/use-master-budget";
 import { formatCurrency, formatNegativeCurrency } from "../../lib/format";
 
 interface IncomeCardProps {
   isAdmin: boolean;
   monthlyIncome: number;
-  onEditIncome: () => void;
   totalFixed: number;
   variableRoom: number;
 }
@@ -25,8 +27,43 @@ export function IncomeCard({
   totalFixed,
   variableRoom,
   isAdmin,
-  onEditIncome,
 }: IncomeCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [value, setValue] = useState(String(monthlyIncome));
+  const inputRef = useRef<HTMLInputElement>(null);
+  const updateSettings = useUpdateMasterSettings({
+    onSuccess: () => setIsEditing(false),
+  });
+
+  useEffect(() => {
+    if (isEditing) {
+      setValue(String(monthlyIncome));
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [isEditing, monthlyIncome]);
+
+  const handleSave = () => {
+    const parsed = Number.parseFloat(value);
+    if (!Number.isNaN(parsed) && parsed >= 0) {
+      updateSettings.mutate({ monthly_income: parsed });
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setValue(String(monthlyIncome));
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSave();
+    }
+    if (e.key === "Escape") {
+      handleCancel();
+    }
+  };
+
   return (
     <div
       style={{
@@ -56,7 +93,7 @@ export function IncomeCard({
         >
           <IconTrendingUp color="var(--green)" size={20} stroke={2} />
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <span
             style={{
               fontSize: 12,
@@ -68,17 +105,78 @@ export function IncomeCard({
           >
             Monthly net income
           </span>
-          <span
-            style={{
-              fontSize: 28,
-              fontWeight: 900,
-              color: "var(--green)",
-              fontVariantNumeric: "tabular-nums",
-              lineHeight: 1,
-            }}
-          >
-            {formatCurrency(monthlyIncome)}
-          </span>
+
+          {isEditing ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <input
+                disabled={updateSettings.isPending}
+                onChange={(e) => setValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                ref={inputRef}
+                style={{
+                  background: "var(--surface-raised)",
+                  border: "1.5px solid var(--accent)",
+                  borderRadius: "var(--r-sm)",
+                  fontSize: 22,
+                  fontWeight: 800,
+                  color: "var(--green)",
+                  padding: "3px 8px",
+                  outline: "none",
+                  width: 140,
+                  fontVariantNumeric: "tabular-nums",
+                }}
+                value={value}
+              />
+              <button
+                disabled={updateSettings.isPending}
+                onClick={handleSave}
+                style={{
+                  background: "var(--green-bg)",
+                  border: "none",
+                  borderRadius: "var(--r-sm)",
+                  padding: "4px 6px",
+                  cursor: "pointer",
+                  color: "var(--green)",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                title="Save"
+                type="button"
+              >
+                <IconCheck size={14} />
+              </button>
+              <button
+                disabled={updateSettings.isPending}
+                onClick={handleCancel}
+                style={{
+                  background: "var(--red-bg)",
+                  border: "none",
+                  borderRadius: "var(--r-sm)",
+                  padding: "4px 6px",
+                  cursor: "pointer",
+                  color: "var(--red)",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                title="Cancel"
+                type="button"
+              >
+                <IconX size={14} />
+              </button>
+            </div>
+          ) : (
+            <span
+              style={{
+                fontSize: 28,
+                fontWeight: 900,
+                color: "var(--green)",
+                fontVariantNumeric: "tabular-nums",
+                lineHeight: 1,
+              }}
+            >
+              {formatCurrency(monthlyIncome)}
+            </span>
+          )}
         </div>
       </div>
 
@@ -101,11 +199,11 @@ export function IncomeCard({
       />
 
       {/* Edit income — admin only */}
-      {isAdmin && (
+      {isAdmin && !isEditing && (
         <>
           <div style={{ flex: 1 }} />
           <button
-            onClick={onEditIncome}
+            onClick={() => setIsEditing(true)}
             style={{
               background: "transparent",
               border: "1px solid var(--border)",
