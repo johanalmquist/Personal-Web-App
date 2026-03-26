@@ -1,5 +1,6 @@
 import { useForm } from "@tanstack/react-form";
-import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useAuth } from "../contexts/auth-context";
 
@@ -11,9 +12,16 @@ const loginSchema = z.object({
 const LAST_EMAIL_KEY = "lastEmail";
 
 export function LoginPage() {
-  const { signIn } = useAuth();
+  const { signIn, session } = useAuth();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (session) {
+      navigate({ to: "/" });
+    }
+  }, [session, navigate]);
 
   const form = useForm({
     defaultValues: {
@@ -28,7 +36,6 @@ export function LoginPage() {
       if (error) {
         setServerError(error.message || "Invalid email or password");
       }
-      // On success: auth state change will update session; routing handled in JOH-25
     },
   });
 
