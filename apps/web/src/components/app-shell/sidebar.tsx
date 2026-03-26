@@ -162,10 +162,11 @@ function UserAvatar({ name }: { name: string }) {
 }
 
 export function Sidebar() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
   const [settingsHovered, setSettingsHovered] = useState(false);
+  const [avatarHovered, setAvatarHovered] = useState(false);
 
   const displayName =
     (user?.user_metadata?.full_name as string | undefined) ||
@@ -302,7 +303,52 @@ export function Sidebar() {
             </span>
           )}
         </div>
-        <UserAvatar name={displayName} />
+        <div
+          style={{
+            position: "relative",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <button
+            onClick={signOut}
+            onMouseEnter={() => setAvatarHovered(true)}
+            onMouseLeave={() => setAvatarHovered(false)}
+            style={{
+              background: "none",
+              border: "none",
+              padding: 0,
+              cursor: "pointer",
+              borderRadius: "50%",
+              display: "flex",
+            }}
+            type="button"
+          >
+            <UserAvatar name={displayName} />
+          </button>
+          {avatarHovered && (
+            <span
+              style={{
+                position: "absolute",
+                left: "calc(100% + 12px)",
+                top: "50%",
+                transform: "translateY(-50%)",
+                background: "var(--surface-raised)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--r-sm)",
+                fontSize: 11,
+                fontWeight: 600,
+                color: "var(--text)",
+                padding: "5px 10px",
+                whiteSpace: "nowrap",
+                pointerEvents: "none",
+                zIndex: 100,
+              }}
+            >
+              Sign out
+            </span>
+          )}
+        </div>
       </div>
 
       <style>{`
