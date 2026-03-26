@@ -77,7 +77,9 @@ export const MasterBudgetCategoryWithItemsSchema = BudgetCategorySchema.extend({
   items: z.array(MasterBudgetItemSchema),
 });
 
-export type MasterBudgetCategoryWithItems = z.infer<typeof MasterBudgetCategoryWithItemsSchema>;
+export type MasterBudgetCategoryWithItems = z.infer<
+  typeof MasterBudgetCategoryWithItemsSchema
+>;
 
 export const MasterBudgetResponseSchema = z.object({
   settings: MasterBudgetSettingsSchema,
@@ -122,7 +124,9 @@ export type MonthlyBudgetItem = z.infer<typeof MonthlyBudgetItemSchema>;
 export const UpdateMonthlyBudgetItemSchema = z.object({
   budgeted_amount: z.number().min(0),
 });
-export type UpdateMonthlyBudgetItem = z.infer<typeof UpdateMonthlyBudgetItemSchema>;
+export type UpdateMonthlyBudgetItem = z.infer<
+  typeof UpdateMonthlyBudgetItemSchema
+>;
 
 export const MonthlyBudgetOverviewSchema = z.object({
   income: z.number(),
@@ -159,7 +163,9 @@ export type Transaction = z.infer<typeof TransactionSchema>;
 export const TransactionWithBalanceSchema = TransactionSchema.extend({
   running_balance: z.number(),
 });
-export type TransactionWithBalance = z.infer<typeof TransactionWithBalanceSchema>;
+export type TransactionWithBalance = z.infer<
+  typeof TransactionWithBalanceSchema
+>;
 
 export const CreateTransactionSchema = z.object({
   date: z.string().min(1),
@@ -226,7 +232,9 @@ export const CreatePreRegisteredEntrySchema = z.object({
   category_id: z.string().uuid().nullable().optional(),
   tag_id: z.string().uuid().nullable().optional(),
 });
-export type CreatePreRegisteredEntry = z.infer<typeof CreatePreRegisteredEntrySchema>;
+export type CreatePreRegisteredEntry = z.infer<
+  typeof CreatePreRegisteredEntrySchema
+>;
 
 export const UpdatePreRegisteredEntrySchema = z.object({
   year: z.number().int().min(2000).max(2100).optional(),
@@ -237,4 +245,6 @@ export const UpdatePreRegisteredEntrySchema = z.object({
   category_id: z.string().uuid().nullable().optional(),
   tag_id: z.string().uuid().nullable().optional(),
 });
-export type UpdatePreRegisteredEntry = z.infer<typeof UpdatePreRegisteredEntrySchema>;
+export type UpdatePreRegisteredEntry = z.infer<
+  typeof UpdatePreRegisteredEntrySchema
+>;

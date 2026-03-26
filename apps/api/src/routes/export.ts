@@ -17,8 +17,18 @@ const ExportQuerySchema = z.object({
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
 const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 interface ParsedYM {
@@ -95,7 +105,7 @@ function buildMonthSheet(
   month: number,
   budget: MonthlyBudget,
   items: BudgetItem[],
-  txs: TxRow[],
+  txs: TxRow[]
 ): void {
   const monthLabel = `${MONTH_NAMES[month - 1]} ${year}`;
 
@@ -108,7 +118,10 @@ function buildMonthSheet(
 
   // ── Overview ──
   const income = Number(budget.income);
-  const totalBudgeted = items.reduce((s, i) => s + Number(i.budgeted_amount), 0);
+  const totalBudgeted = items.reduce(
+    (s, i) => s + Number(i.budgeted_amount),
+    0
+  );
   const variableRoom = income - totalBudgeted;
   const totalExpenses = txs
     .filter((t) => t.type === "expense")
@@ -140,7 +153,13 @@ function buildMonthSheet(
   ws.getCell(`A${row}`).font = { bold: true };
   row++;
 
-  const summaryHeaders = ["Category", "Item", "Budgeted", "Actual", "Difference"];
+  const summaryHeaders = [
+    "Category",
+    "Item",
+    "Budgeted",
+    "Actual",
+    "Difference",
+  ];
   summaryHeaders.forEach((h, i) => {
     const cell = ws.getCell(row, i + 1);
     cell.value = h;
@@ -170,7 +189,15 @@ function buildMonthSheet(
   ws.getCell(`A${row}`).font = { bold: true };
   row++;
 
-  const txHeaders = ["Date", "Description", "Category/Item", "Type", "Amount", "Tags", "Running Balance"];
+  const txHeaders = [
+    "Date",
+    "Description",
+    "Category/Item",
+    "Type",
+    "Amount",
+    "Tags",
+    "Running Balance",
+  ];
   txHeaders.forEach((h, i) => {
     const cell = ws.getCell(row, i + 1);
     cell.value = h;
@@ -187,10 +214,9 @@ function buildMonthSheet(
       runningBalance += amount;
     }
 
-    const itemLabel =
-      tx.monthly_item_id
-        ? (items.find((i) => i.id === tx.monthly_item_id)?.item_name ?? "")
-        : "";
+    const itemLabel = tx.monthly_item_id
+      ? (items.find((i) => i.id === tx.monthly_item_id)?.item_name ?? "")
+      : "";
 
     ws.getCell(`A${row}`).value = tx.date;
     ws.getCell(`B${row}`).value = tx.description;
@@ -226,19 +252,28 @@ exportRouter.openapi(
     request: { query: ExportQuerySchema },
     responses: {
       200: { description: "Excel file (.xlsx) download" },
-      400: { description: "Invalid date range", content: { "application/json": { schema: ErrorSchema } } },
+      400: {
+        description: "Invalid date range",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
     const { from, to } = c.req.valid("query");
 
     if (isFromAfterTo(from, to)) {
-      return c.json({ error: "'from' must be before or equal to 'to'" }, 400 as const);
+      return c.json(
+        { error: "'from' must be before or equal to 'to'" },
+        400 as const
+      );
     }
 
     const months = monthsInRange(from, to);
     if (months.length > 36) {
-      return c.json({ error: "Date range must not exceed 36 months" }, 400 as const);
+      return c.json(
+        { error: "Date range must not exceed 36 months" },
+        400 as const
+      );
     }
 
     const workbook = new ExcelJS.Workbook();
@@ -264,7 +299,12 @@ exportRouter.openapi(
       }
 
       const [itemsResult, txResult] = await Promise.all([
-        supabase.from("monthly_budget_items").select("*").eq("monthly_budget_id", budget.id).order("category_name").order("item_name"),
+        supabase
+          .from("monthly_budget_items")
+          .select("*")
+          .eq("monthly_budget_id", budget.id)
+          .order("category_name")
+          .order("item_name"),
         supabase
           .from("transactions")
           .select("*, transaction_tags(tags(name))")
@@ -279,7 +319,7 @@ exportRouter.openapi(
         month,
         budget as MonthlyBudget,
         (itemsResult.data ?? []) as BudgetItem[],
-        (txResult.data ?? []) as unknown as TxRow[],
+        (txResult.data ?? []) as unknown as TxRow[]
       );
     }
 
@@ -287,9 +327,10 @@ exportRouter.openapi(
 
     return new Response(buffer as ArrayBuffer, {
       headers: {
-        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         "Content-Disposition": 'attachment; filename="budget-export.xlsx"',
       },
     });
-  },
+  }
 );

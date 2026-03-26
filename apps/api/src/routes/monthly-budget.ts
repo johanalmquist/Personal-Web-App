@@ -10,13 +10,20 @@ import {
 import { supabase } from "../lib/supabase";
 import { type AppVariables, requireRole } from "../middleware/auth";
 
-export const monthlyBudgetRouter = new OpenAPIHono<{ Variables: AppVariables }>();
+export const monthlyBudgetRouter = new OpenAPIHono<{
+  Variables: AppVariables;
+}>();
 
 // ─── Shared schemas ────────────────────────────────────────────────────────────
 
-const ErrorSchema = z.object({ error: z.string() }).openapi("MonthlyBudgetError");
+const ErrorSchema = z
+  .object({ error: z.string() })
+  .openapi("MonthlyBudgetError");
 const IdParamSchema = z.object({ id: z.string().uuid() });
-const ItemParamSchema = z.object({ id: z.string().uuid(), itemId: z.string().uuid() });
+const ItemParamSchema = z.object({
+  id: z.string().uuid(),
+  itemId: z.string().uuid(),
+});
 
 // ─── GET /budget/monthly ───────────────────────────────────────────────────────
 
@@ -30,7 +37,9 @@ monthlyBudgetRouter.openapi(
     responses: {
       200: {
         description: "List of monthly budgets",
-        content: { "application/json": { schema: z.array(MonthlyBudgetSchema) } },
+        content: {
+          "application/json": { schema: z.array(MonthlyBudgetSchema) },
+        },
       },
     },
   }),
@@ -47,7 +56,7 @@ monthlyBudgetRouter.openapi(
     }));
 
     return c.json(budgets, 200 as const);
-  },
+  }
 );
 
 // ─── POST /budget/monthly ──────────────────────────────────────────────────────
@@ -60,16 +69,28 @@ monthlyBudgetRouter.openapi(
     summary: "Create a monthly budget — snapshots master budget [admin only]",
     security: [{ BearerAuth: [] }],
     request: {
-      body: { required: true, content: { "application/json": { schema: CreateMonthlyBudgetSchema } } },
+      body: {
+        required: true,
+        content: { "application/json": { schema: CreateMonthlyBudgetSchema } },
+      },
     },
     responses: {
       201: {
         description: "Created monthly budget",
         content: { "application/json": { schema: MonthlyBudgetSchema } },
       },
-      409: { description: "Monthly budget for this year/month already exists", content: { "application/json": { schema: ErrorSchema } } },
-      403: { description: "Forbidden", content: { "application/json": { schema: ErrorSchema } } },
-      400: { description: "Validation error", content: { "application/json": { schema: ErrorSchema } } },
+      409: {
+        description: "Monthly budget for this year/month already exists",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      403: {
+        description: "Forbidden",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      400: {
+        description: "Validation error",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -88,7 +109,10 @@ monthlyBudgetRouter.openapi(
       .maybeSingle();
 
     if (existing) {
-      return c.json({ error: "Monthly budget for this year/month already exists" }, 409 as const);
+      return c.json(
+        { error: "Monthly budget for this year/month already exists" },
+        409 as const
+      );
     }
 
     // Fetch master settings and items in parallel
@@ -119,7 +143,9 @@ monthlyBudgetRouter.openapi(
       const snapshotItems = masterItems.map((item) => ({
         monthly_budget_id: budget.id,
         master_item_id: item.id,
-        category_name: (item.budget_categories as unknown as { name: string } | null)?.name ?? "Unknown",
+        category_name:
+          (item.budget_categories as unknown as { name: string } | null)
+            ?.name ?? "Unknown",
         item_name: item.name,
         budgeted_amount: item.default_amount,
       }));
@@ -155,9 +181,11 @@ monthlyBudgetRouter.openapi(
           .map((e, i) =>
             e.tag_id && insertedTxs[i]
               ? { tag_id: e.tag_id, transaction_id: insertedTxs[i].id }
-              : null,
+              : null
           )
-          .filter((r): r is { tag_id: string; transaction_id: string } => r !== null);
+          .filter(
+            (r): r is { tag_id: string; transaction_id: string } => r !== null
+          );
 
         if (tagRows.length > 0) {
           await supabase.from("transaction_tags").insert(tagRows);
@@ -167,11 +195,14 @@ monthlyBudgetRouter.openapi(
       await supabase
         .from("pre_registered_entries")
         .update({ imported: true })
-        .in("id", entries.map((e) => e.id));
+        .in(
+          "id",
+          entries.map((e) => e.id)
+        );
     }
 
     return c.json({ ...budget, income: Number(budget.income) }, 201 as const);
-  },
+  }
 );
 
 // ─── GET /budget/monthly/:id ───────────────────────────────────────────────────
@@ -189,7 +220,10 @@ monthlyBudgetRouter.openapi(
         description: "Monthly budget detail",
         content: { "application/json": { schema: MonthlyBudgetDetailSchema } },
       },
-      404: { description: "Not found", content: { "application/json": { schema: ErrorSchema } } },
+      404: {
+        description: "Not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -197,7 +231,10 @@ monthlyBudgetRouter.openapi(
 
     const [budgetResult, itemsResult, expensesResult] = await Promise.all([
       supabase.from("monthly_budgets").select("*").eq("id", id).single(),
-      supabase.from("monthly_budget_items").select("*").eq("monthly_budget_id", id),
+      supabase
+        .from("monthly_budget_items")
+        .select("*")
+        .eq("monthly_budget_id", id),
       supabase
         .from("transactions")
         .select("amount")
@@ -214,16 +251,22 @@ monthlyBudgetRouter.openapi(
     const expenses = expensesResult.data ?? [];
 
     const income = Number(budget.income);
-    const total_budgeted = items.reduce((sum, i) => sum + Number(i.budgeted_amount), 0);
+    const total_budgeted = items.reduce(
+      (sum, i) => sum + Number(i.budgeted_amount),
+      0
+    );
     const variable_room = income - total_budgeted;
-    const total_transactions = expenses.reduce((sum, t) => sum + Number(t.amount), 0);
+    const total_transactions = expenses.reduce(
+      (sum, t) => sum + Number(t.amount),
+      0
+    );
     const actual_remaining = variable_room - total_transactions;
 
     const mappedItems = items.map(
       ({ monthly_budget_id: _mb, master_item_id: _mi, ...item }) => ({
         ...item,
         budgeted_amount: Number(item.budgeted_amount),
-      }),
+      })
     );
 
     return c.json(
@@ -231,11 +274,17 @@ monthlyBudgetRouter.openapi(
         ...budget,
         income,
         items: mappedItems,
-        overview: { income, total_budgeted, variable_room, total_transactions, actual_remaining },
+        overview: {
+          income,
+          total_budgeted,
+          variable_room,
+          total_transactions,
+          actual_remaining,
+        },
       },
-      200 as const,
+      200 as const
     );
-  },
+  }
 );
 
 // ─── PUT /budget/monthly/:id ───────────────────────────────────────────────────
@@ -249,15 +298,24 @@ monthlyBudgetRouter.openapi(
     security: [{ BearerAuth: [] }],
     request: {
       params: IdParamSchema,
-      body: { required: true, content: { "application/json": { schema: UpdateMonthlyBudgetSchema } } },
+      body: {
+        required: true,
+        content: { "application/json": { schema: UpdateMonthlyBudgetSchema } },
+      },
     },
     responses: {
       200: {
         description: "Updated monthly budget",
         content: { "application/json": { schema: MonthlyBudgetSchema } },
       },
-      403: { description: "Forbidden", content: { "application/json": { schema: ErrorSchema } } },
-      404: { description: "Not found", content: { "application/json": { schema: ErrorSchema } } },
+      403: {
+        description: "Forbidden",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      404: {
+        description: "Not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -280,31 +338,46 @@ monthlyBudgetRouter.openapi(
     }
 
     return c.json({ ...data, income: Number(data.income) }, 200 as const);
-  },
+  }
 );
 
 // ─── PUT /budget/monthly/:id/items/:itemId ─────────────────────────────────────
 
-monthlyBudgetRouter.use("/budget/monthly/:id/items/:itemId", requireRole("admin"));
+monthlyBudgetRouter.use(
+  "/budget/monthly/:id/items/:itemId",
+  requireRole("admin")
+);
 
 monthlyBudgetRouter.openapi(
   createRoute({
     method: "put",
     path: "/budget/monthly/{id}/items/{itemId}",
     tags: ["Monthly Budget"],
-    summary: "Override a line item's budgeted amount for this month [admin only]",
+    summary:
+      "Override a line item's budgeted amount for this month [admin only]",
     security: [{ BearerAuth: [] }],
     request: {
       params: ItemParamSchema,
-      body: { required: true, content: { "application/json": { schema: UpdateMonthlyBudgetItemSchema } } },
+      body: {
+        required: true,
+        content: {
+          "application/json": { schema: UpdateMonthlyBudgetItemSchema },
+        },
+      },
     },
     responses: {
       200: {
         description: "Updated line item",
         content: { "application/json": { schema: MonthlyBudgetItemSchema } },
       },
-      403: { description: "Forbidden", content: { "application/json": { schema: ErrorSchema } } },
-      404: { description: "Not found", content: { "application/json": { schema: ErrorSchema } } },
+      403: {
+        description: "Forbidden",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      404: {
+        description: "Not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -324,6 +397,9 @@ monthlyBudgetRouter.openapi(
     }
 
     const { monthly_budget_id: _mb, master_item_id: _mi, ...item } = data;
-    return c.json({ ...item, budgeted_amount: Number(item.budgeted_amount) }, 200 as const);
-  },
+    return c.json(
+      { ...item, budgeted_amount: Number(item.budgeted_amount) },
+      200 as const
+    );
+  }
 );

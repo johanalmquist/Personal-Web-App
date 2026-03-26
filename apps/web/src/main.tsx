@@ -27,7 +27,9 @@ function InnerApp() {
   return (
     <>
       <RouterProvider router={router} />
-      {import.meta.env.DEV && <TanStackRouterDevtools router={router} />}
+      {import.meta.env.DEV && (
+        <TanStackRouterDevtools position="bottom-right" router={router} />
+      )}
     </>
   );
 }

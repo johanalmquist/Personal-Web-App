@@ -6,19 +6,33 @@ import {
   TransactionWithBalanceSchema,
   UpdateTransactionSchema,
 } from "@personal/types";
-import { deleteReceipt, getReceiptSignedUrl, uploadReceipt } from "../lib/storage";
+import {
+  deleteReceipt,
+  getReceiptSignedUrl,
+  uploadReceipt,
+} from "../lib/storage";
 import { supabase } from "../lib/supabase";
 import { type AppVariables, requireRole } from "../middleware/auth";
 
-export const transactionsRouter = new OpenAPIHono<{ Variables: AppVariables }>();
+export const transactionsRouter = new OpenAPIHono<{
+  Variables: AppVariables;
+}>();
 
 // ─── Shared schemas ────────────────────────────────────────────────────────────
 
 const ErrorSchema = z.object({ error: z.string() }).openapi("TransactionError");
 const BudgetParamSchema = z.object({ id: z.string().uuid() });
-const TxParamSchema = z.object({ id: z.string().uuid(), txId: z.string().uuid() });
+const TxParamSchema = z.object({
+  id: z.string().uuid(),
+  txId: z.string().uuid(),
+});
 
-const ALLOWED_CONTENT_TYPES = ["image/jpeg", "image/png", "image/webp", "image/heic"];
+const ALLOWED_CONTENT_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 // ─── Helper ────────────────────────────────────────────────────────────────────
@@ -35,11 +49,15 @@ interface TxRow {
   transaction_tags: { tag_id: string }[];
   type: "income" | "expense";
   updated_at: string;
-};
+}
 
 function mapTx(row: TxRow) {
   const { transaction_tags, amount, ...rest } = row;
-  return { ...rest, amount: Number(amount), tags: transaction_tags.map((t) => t.tag_id) };
+  return {
+    ...rest,
+    amount: Number(amount),
+    tags: transaction_tags.map((t) => t.tag_id),
+  };
 }
 
 // ─── GET /budget/monthly/:id/transactions ─────────────────────────────────────
@@ -65,9 +83,14 @@ transactionsRouter.openapi(
     responses: {
       200: {
         description: "Transactions with running balance",
-        content: { "application/json": { schema: z.array(TransactionWithBalanceSchema) } },
+        content: {
+          "application/json": { schema: z.array(TransactionWithBalanceSchema) },
+        },
       },
-      404: { description: "Monthly budget not found", content: { "application/json": { schema: ErrorSchema } } },
+      404: {
+        description: "Monthly budget not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -81,13 +104,22 @@ transactionsRouter.openapi(
       .eq("monthly_budget_id", id)
       .order("date", { ascending: true });
 
-    if (date_from) { txQuery = txQuery.gte("date", date_from); }
-    if (date_to) { txQuery = txQuery.lte("date", date_to); }
-    if (type) { txQuery = txQuery.eq("type", type); }
+    if (date_from) {
+      txQuery = txQuery.gte("date", date_from);
+    }
+    if (date_to) {
+      txQuery = txQuery.lte("date", date_to);
+    }
+    if (type) {
+      txQuery = txQuery.eq("type", type);
+    }
 
     const [budgetResult, budgetItemsResult, txResult] = await Promise.all([
       supabase.from("monthly_budgets").select("income").eq("id", id).single(),
-      supabase.from("monthly_budget_items").select("budgeted_amount").eq("monthly_budget_id", id),
+      supabase
+        .from("monthly_budget_items")
+        .select("budgeted_amount")
+        .eq("monthly_budget_id", id),
       txQuery,
     ]);
 
@@ -98,7 +130,7 @@ transactionsRouter.openapi(
     const income = Number(budgetResult.data.income);
     const total_budgeted = (budgetItemsResult.data ?? []).reduce(
       (sum, i) => sum + Number(i.budgeted_amount),
-      0,
+      0
     );
     const variable_room = income - total_budgeted;
 
@@ -107,18 +139,20 @@ transactionsRouter.openapi(
     // Post-filter by tag (client-side)
     if (tag) {
       transactions = transactions.filter((tx) =>
-        tx.transaction_tags.some((t) => t.tag_id === tag),
+        tx.transaction_tags.some((t) => t.tag_id === tag)
       );
     }
 
     let cumulative = 0;
     const result = transactions.map((tx) => {
-      if (tx.type === "expense") { cumulative += Number(tx.amount); }
+      if (tx.type === "expense") {
+        cumulative += Number(tx.amount);
+      }
       return { ...mapTx(tx), running_balance: variable_room - cumulative };
     });
 
     return c.json(result, 200 as const);
-  },
+  }
 );
 
 // ─── POST /budget/monthly/:id/transactions ────────────────────────────────────
@@ -132,15 +166,24 @@ transactionsRouter.openapi(
     security: [{ BearerAuth: [] }],
     request: {
       params: BudgetParamSchema,
-      body: { required: true, content: { "application/json": { schema: CreateTransactionSchema } } },
+      body: {
+        required: true,
+        content: { "application/json": { schema: CreateTransactionSchema } },
+      },
     },
     responses: {
       201: {
         description: "Created transaction",
         content: { "application/json": { schema: TransactionSchema } },
       },
-      403: { description: "Forbidden", content: { "application/json": { schema: ErrorSchema } } },
-      400: { description: "Validation error", content: { "application/json": { schema: ErrorSchema } } },
+      403: {
+        description: "Forbidden",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      400: {
+        description: "Validation error",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -162,9 +205,9 @@ transactionsRouter.openapi(
     }
 
     if (tags && tags.length > 0) {
-      await supabase.from("transaction_tags").insert(
-        tags.map((tag_id) => ({ transaction_id: tx.id, tag_id })),
-      );
+      await supabase
+        .from("transaction_tags")
+        .insert(tags.map((tag_id) => ({ transaction_id: tx.id, tag_id })));
     }
 
     const { data: full } = await supabase
@@ -174,7 +217,7 @@ transactionsRouter.openapi(
       .single();
 
     return c.json(mapTx(full as TxRow), 201 as const);
-  },
+  }
 );
 
 // ─── PUT /budget/monthly/:id/transactions/:txId ───────────────────────────────
@@ -188,15 +231,24 @@ transactionsRouter.openapi(
     security: [{ BearerAuth: [] }],
     request: {
       params: TxParamSchema,
-      body: { required: true, content: { "application/json": { schema: UpdateTransactionSchema } } },
+      body: {
+        required: true,
+        content: { "application/json": { schema: UpdateTransactionSchema } },
+      },
     },
     responses: {
       200: {
         description: "Updated transaction",
         content: { "application/json": { schema: TransactionSchema } },
       },
-      403: { description: "Forbidden", content: { "application/json": { schema: ErrorSchema } } },
-      404: { description: "Not found", content: { "application/json": { schema: ErrorSchema } } },
+      403: {
+        description: "Forbidden",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      404: {
+        description: "Not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -221,11 +273,14 @@ transactionsRouter.openapi(
 
     // Replace tags if provided (even if empty array — means "clear tags")
     if (tags !== undefined) {
-      await supabase.from("transaction_tags").delete().eq("transaction_id", txId);
+      await supabase
+        .from("transaction_tags")
+        .delete()
+        .eq("transaction_id", txId);
       if (tags.length > 0) {
-        await supabase.from("transaction_tags").insert(
-          tags.map((tag_id) => ({ transaction_id: txId, tag_id })),
-        );
+        await supabase
+          .from("transaction_tags")
+          .insert(tags.map((tag_id) => ({ transaction_id: txId, tag_id })));
       }
     }
 
@@ -236,7 +291,7 @@ transactionsRouter.openapi(
       .single();
 
     return c.json(mapTx(full as TxRow), 200 as const);
-  },
+  }
 );
 
 // ─── DELETE /budget/monthly/:id/transactions/:txId ────────────────────────────
@@ -251,8 +306,14 @@ transactionsRouter.openapi(
     request: { params: TxParamSchema },
     responses: {
       204: { description: "Deleted" },
-      403: { description: "Forbidden", content: { "application/json": { schema: ErrorSchema } } },
-      404: { description: "Not found", content: { "application/json": { schema: ErrorSchema } } },
+      403: {
+        description: "Forbidden",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      404: {
+        description: "Not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -290,14 +351,14 @@ transactionsRouter.openapi(
     }
 
     return new Response(null, { status: 204 });
-  },
+  }
 );
 
 // ─── Attachment endpoints (admin-only paths) ───────────────────────────────────
 
 transactionsRouter.use(
   "/budget/monthly/:id/transactions/:txId/attachment",
-  requireRole("admin"),
+  requireRole("admin")
 );
 
 // ─── POST /budget/monthly/:id/transactions/:txId/attachment ───────────────────
@@ -325,10 +386,22 @@ transactionsRouter.openapi(
         description: "Uploaded receipt",
         content: { "application/json": { schema: AttachmentResponseSchema } },
       },
-      400: { description: "Upload failed", content: { "application/json": { schema: ErrorSchema } } },
-      404: { description: "Transaction not found", content: { "application/json": { schema: ErrorSchema } } },
-      413: { description: "File too large", content: { "application/json": { schema: ErrorSchema } } },
-      422: { description: "Invalid file type", content: { "application/json": { schema: ErrorSchema } } },
+      400: {
+        description: "Upload failed",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      404: {
+        description: "Transaction not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      413: {
+        description: "File too large",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      422: {
+        description: "Invalid file type",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -342,7 +415,10 @@ transactionsRouter.openapi(
     }
 
     if (!ALLOWED_CONTENT_TYPES.includes(file.type)) {
-      return c.json({ error: "Invalid file type. Allowed: jpeg, png, webp, heic" }, 422 as const);
+      return c.json(
+        { error: "Invalid file type. Allowed: jpeg, png, webp, heic" },
+        422 as const
+      );
     }
 
     if (file.size > MAX_FILE_SIZE) {
@@ -373,12 +449,15 @@ transactionsRouter.openapi(
       return c.json({ error: "Failed to upload receipt" }, 400 as const);
     }
 
-    await supabase.from("transactions").update({ attachment_path: path }).eq("id", txId);
+    await supabase
+      .from("transactions")
+      .update({ attachment_path: path })
+      .eq("id", txId);
 
     const signed_url = (await getReceiptSignedUrl(path)) ?? "";
 
     return c.json({ attachment_path: path, signed_url }, 200 as const);
-  },
+  }
 );
 
 // ─── DELETE /budget/monthly/:id/transactions/:txId/attachment ─────────────────
@@ -393,7 +472,10 @@ transactionsRouter.openapi(
     request: { params: TxParamSchema },
     responses: {
       204: { description: "Deleted" },
-      404: { description: "Not found", content: { "application/json": { schema: ErrorSchema } } },
+      404: {
+        description: "Not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -411,13 +493,19 @@ transactionsRouter.openapi(
     }
 
     if (!tx.attachment_path) {
-      return c.json({ error: "No attachment on this transaction" }, 404 as const);
+      return c.json(
+        { error: "No attachment on this transaction" },
+        404 as const
+      );
     }
 
     await deleteReceipt(tx.attachment_path);
 
-    await supabase.from("transactions").update({ attachment_path: null }).eq("id", txId);
+    await supabase
+      .from("transactions")
+      .update({ attachment_path: null })
+      .eq("id", txId);
 
     return new Response(null, { status: 204 });
-  },
+  }
 );

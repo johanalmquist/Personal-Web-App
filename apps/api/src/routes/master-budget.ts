@@ -13,11 +13,15 @@ import {
 import { supabase } from "../lib/supabase";
 import { type AppVariables, requireRole } from "../middleware/auth";
 
-export const masterBudgetRouter = new OpenAPIHono<{ Variables: AppVariables }>();
+export const masterBudgetRouter = new OpenAPIHono<{
+  Variables: AppVariables;
+}>();
 
 // ─── Shared schemas ────────────────────────────────────────────────────────────
 
-const ErrorSchema = z.object({ error: z.string() }).openapi("MasterBudgetError");
+const ErrorSchema = z
+  .object({ error: z.string() })
+  .openapi("MasterBudgetError");
 
 const IdParamSchema = z.object({ id: z.string().uuid() });
 
@@ -46,7 +50,9 @@ masterBudgetRouter.openapi(
 
     const categories = (categoriesResult.data ?? []).map((cat) => ({
       ...cat,
-      items: (itemsResult.data ?? []).filter((item) => item.category_id === cat.id).map(({ category_id: _c, ...item }) => item),
+      items: (itemsResult.data ?? [])
+        .filter((item) => item.category_id === cat.id)
+        .map(({ category_id: _c, ...item }) => item),
     }));
 
     const settings = settingsResult.data?.[0]
@@ -54,7 +60,7 @@ masterBudgetRouter.openapi(
       : { monthly_income: 0 };
 
     return c.json({ settings, categories }, 200 as const);
-  },
+  }
 );
 
 // ─── POST /budget/master/categories ───────────────────────────────────────────
@@ -70,14 +76,20 @@ masterBudgetRouter.openapi(
     summary: "Create a budget category [admin only]",
     security: [{ BearerAuth: [] }],
     request: {
-      body: { required: true, content: { "application/json": { schema: CreateCategorySchema } } },
+      body: {
+        required: true,
+        content: { "application/json": { schema: CreateCategorySchema } },
+      },
     },
     responses: {
       201: {
         description: "Created category",
         content: { "application/json": { schema: BudgetCategorySchema } },
       },
-      400: { description: "Validation error", content: { "application/json": { schema: ErrorSchema } } },
+      400: {
+        description: "Validation error",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -93,7 +105,7 @@ masterBudgetRouter.openapi(
     }
 
     return c.json(data, 201 as const);
-  },
+  }
 );
 
 // ─── PUT /budget/master/categories/:id ────────────────────────────────────────
@@ -107,14 +119,20 @@ masterBudgetRouter.openapi(
     security: [{ BearerAuth: [] }],
     request: {
       params: IdParamSchema,
-      body: { required: true, content: { "application/json": { schema: UpdateCategorySchema } } },
+      body: {
+        required: true,
+        content: { "application/json": { schema: UpdateCategorySchema } },
+      },
     },
     responses: {
       200: {
         description: "Updated category",
         content: { "application/json": { schema: BudgetCategorySchema } },
       },
-      404: { description: "Not found", content: { "application/json": { schema: ErrorSchema } } },
+      404: {
+        description: "Not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -133,7 +151,7 @@ masterBudgetRouter.openapi(
     }
 
     return c.json(data, 200 as const);
-  },
+  }
 );
 
 // ─── DELETE /budget/master/categories/:id ─────────────────────────────────────
@@ -148,7 +166,10 @@ masterBudgetRouter.openapi(
     request: { params: IdParamSchema },
     responses: {
       204: { description: "Deleted" },
-      404: { description: "Not found", content: { "application/json": { schema: ErrorSchema } } },
+      404: {
+        description: "Not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -164,7 +185,7 @@ masterBudgetRouter.openapi(
     }
 
     return new Response(null, { status: 204 });
-  },
+  }
 );
 
 // ─── POST /budget/master/items ─────────────────────────────────────────────────
@@ -180,15 +201,24 @@ masterBudgetRouter.openapi(
     summary: "Create a master budget line item [admin only]",
     security: [{ BearerAuth: [] }],
     request: {
-      body: { required: true, content: { "application/json": { schema: CreateMasterItemSchema } } },
+      body: {
+        required: true,
+        content: { "application/json": { schema: CreateMasterItemSchema } },
+      },
     },
     responses: {
       201: {
         description: "Created item",
         content: { "application/json": { schema: MasterBudgetItemSchema } },
       },
-      404: { description: "Category not found", content: { "application/json": { schema: ErrorSchema } } },
-      400: { description: "Validation error", content: { "application/json": { schema: ErrorSchema } } },
+      404: {
+        description: "Category not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
+      400: {
+        description: "Validation error",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -222,7 +252,7 @@ masterBudgetRouter.openapi(
 
     const { category_id: _c, ...item } = data;
     return c.json(item, 201 as const);
-  },
+  }
 );
 
 // ─── PUT /budget/master/items/:id ─────────────────────────────────────────────
@@ -236,14 +266,20 @@ masterBudgetRouter.openapi(
     security: [{ BearerAuth: [] }],
     request: {
       params: IdParamSchema,
-      body: { required: true, content: { "application/json": { schema: UpdateMasterItemSchema } } },
+      body: {
+        required: true,
+        content: { "application/json": { schema: UpdateMasterItemSchema } },
+      },
     },
     responses: {
       200: {
         description: "Updated item",
         content: { "application/json": { schema: MasterBudgetItemSchema } },
       },
-      404: { description: "Not found", content: { "application/json": { schema: ErrorSchema } } },
+      404: {
+        description: "Not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -263,7 +299,7 @@ masterBudgetRouter.openapi(
 
     const { category_id: _c, ...item } = data;
     return c.json(item, 200 as const);
-  },
+  }
 );
 
 // ─── DELETE /budget/master/items/:id ──────────────────────────────────────────
@@ -278,7 +314,10 @@ masterBudgetRouter.openapi(
     request: { params: IdParamSchema },
     responses: {
       204: { description: "Deleted" },
-      404: { description: "Not found", content: { "application/json": { schema: ErrorSchema } } },
+      404: {
+        description: "Not found",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -294,7 +333,7 @@ masterBudgetRouter.openapi(
     }
 
     return new Response(null, { status: 204 });
-  },
+  }
 );
 
 // ─── PUT /budget/master/settings ──────────────────────────────────────────────
@@ -309,14 +348,20 @@ masterBudgetRouter.openapi(
     summary: "Update monthly income setting [admin only]",
     security: [{ BearerAuth: [] }],
     request: {
-      body: { required: true, content: { "application/json": { schema: UpdateSettingsSchema } } },
+      body: {
+        required: true,
+        content: { "application/json": { schema: UpdateSettingsSchema } },
+      },
     },
     responses: {
       200: {
         description: "Updated settings",
         content: { "application/json": { schema: MasterBudgetSettingsSchema } },
       },
-      400: { description: "Validation error", content: { "application/json": { schema: ErrorSchema } } },
+      400: {
+        description: "Validation error",
+        content: { "application/json": { schema: ErrorSchema } },
+      },
     },
   }),
   async (c) => {
@@ -353,5 +398,5 @@ masterBudgetRouter.openapi(
     }
 
     return c.json(result, 200 as const);
-  },
+  }
 );

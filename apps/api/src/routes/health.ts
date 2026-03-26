@@ -36,7 +36,7 @@ healthRouter.openapi(
       },
     },
   }),
-  (c) => c.json({ status: "ok" }),
+  (c) => c.json({ status: "ok" })
 );
 
 healthRouter.openapi(
@@ -52,7 +52,7 @@ healthRouter.openapi(
       },
     },
   }),
-  (c) => c.json({ status: "healthy", timestamp: new Date().toISOString() }),
+  (c) => c.json({ status: "healthy", timestamp: new Date().toISOString() })
 );
 
 healthRouter.openapi(
@@ -66,9 +66,7 @@ healthRouter.openapi(
         description: "Database is reachable",
         content: {
           "application/json": {
-            schema: z
-              .object({ status: z.string() })
-              .openapi("DbHealthOk"),
+            schema: z.object({ status: z.string() }).openapi("DbHealthOk"),
           },
         },
       },
@@ -84,8 +82,11 @@ healthRouter.openapi(
       perPage: 1,
     });
     if (error) {
-      return c.json({ status: "unhealthy", error: error.message }, 503 as const);
+      return c.json(
+        { status: "unhealthy", error: error.message },
+        503 as const
+      );
     }
     return c.json({ status: "healthy" }, 200 as const);
-  },
+  }
 );
