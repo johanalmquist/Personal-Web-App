@@ -1,0 +1,120 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+:root {
+  /* ── Surfaces ── */
+  --bg: #0d0f18;
+  --surface: #13161f;
+  --surface-raised: #1a1d2e;
+  --surface-hover: #1e2236;
+  --border: #252a3d;
+  --border-sub: #1c1f30;
+  --border-focus: #4263eb;
+
+  /* ── Accent ── */
+  --accent: #4263eb;
+  --accent-soft: #6485f5;
+  --accent-bg: rgba(66, 99, 235, 0.12);
+  --accent-glow: rgba(66, 99, 235, 0.35);
+
+  /* ── Text ── */
+  --text: #e8eaf6;
+  --text-2: #9399b5;
+  --text-3: #5d6384;
+
+  /* ── Green (income / positive) ── */
+  --green: #51cf66;
+  --green-dim: #2f9e44;
+  --green-bg: rgba(81, 207, 102, 0.11);
+
+  /* ── Red (expense / error) ── */
+  --red: #ff6b6b;
+  --red-dim: #e03131;
+  --red-bg: rgba(255, 107, 107, 0.11);
+
+  /* ── Amber (warning / override) ── */
+  --amber: #fcc419;
+  --amber-bg: rgba(252, 196, 25, 0.1);
+
+  /* ── Violet (pre-registered / upcoming) ── */
+  --violet: #cc5de8;
+  --violet-bg: rgba(204, 93, 232, 0.1);
+
+  /* ── Teal (Fasta kostnader) ── */
+  --teal: #20c997;
+  --teal-bg: rgba(32, 201, 151, 0.1);
+
+  /* ── Border radius ── */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 18px;
+  --r-2xl: 22px;
+  --r-pill: 100px;
+
+  /* ── Typography ── */
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg: #f4f5f9;
+  --surface: #ffffff;
+  --surface-raised: #f0f1f7;
+  --surface-hover: #eceef6;
+  --border: #e2e5ef;
+  --border-sub: #eceef6;
+  --border-focus: #4263eb;
+  --accent-glow: rgba(66, 99, 235, 0.18);
+
+  --text: #1a1d2e;
+  --text-2: #525878;
+  --text-3: #9399b5;
+
+  color-scheme: light;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ── Animations ── */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.85);
+  }
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}

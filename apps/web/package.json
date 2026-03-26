@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@personal/types": "workspace:*",
+    "@supabase/supabase-js": "^2.100.0",
     "@t3-oss/env-core": "latest",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
