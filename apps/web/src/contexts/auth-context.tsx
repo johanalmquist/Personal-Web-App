@@ -11,7 +11,7 @@ import { supabase } from "../lib/supabase";
 
 type Role = "admin" | "viewer" | null;
 
-interface AuthContextValue {
+export interface AuthContextValue {
   isLoading: boolean;
   role: Role;
   session: Session | null;

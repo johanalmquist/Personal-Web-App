@@ -1,5 +1,6 @@
 import { useForm } from "@tanstack/react-form";
-import { useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useAuth } from "../contexts/auth-context";
 
@@ -11,9 +12,16 @@ const loginSchema = z.object({
 const LAST_EMAIL_KEY = "lastEmail";
 
 export function LoginPage() {
-  const { signIn } = useAuth();
+  const { signIn, session } = useAuth();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (session) {
+      navigate({ to: "/" });
+    }
+  }, [session, navigate]);
 
   const form = useForm({
     defaultValues: {
@@ -28,7 +36,6 @@ export function LoginPage() {
       if (error) {
         setServerError(error.message || "Invalid email or password");
       }
-      // On success: auth state change will update session; routing handled in JOH-25
     },
   });
 
@@ -36,17 +43,17 @@ export function LoginPage() {
   const isError = serverError !== null;
 
   return (
-    <div style={styles.page}>
+    <div className="login-page" style={styles.page}>
       {/* Background dot grid */}
       <div style={styles.dotGrid} />
 
       {/* Ambient glow orbs */}
-      <div style={{ ...styles.orb, ...styles.orb1 }} />
-      <div style={{ ...styles.orb, ...styles.orb2 }} />
-      <div style={{ ...styles.orb, ...styles.orb3 }} />
+      <div className="login-orb-1" style={{ ...styles.orb, ...styles.orb1 }} />
+      <div className="login-orb-2" style={{ ...styles.orb, ...styles.orb2 }} />
+      <div className="login-orb-3" style={{ ...styles.orb, ...styles.orb3 }} />
 
       {/* Left panel — mini app preview */}
-      <div style={styles.leftPanel}>
+      <div className="login-left" style={styles.leftPanel}>
         <div style={styles.previewTitle}>Your finances, at a glance</div>
         <div style={styles.previewStack}>
           {/* Remaining stat card */}
@@ -118,18 +125,77 @@ export function LoginPage() {
       </div>
 
       {/* Center — login card */}
-      <div style={styles.loginWrap}>
+      <div className="login-center" style={styles.loginWrap}>
         {/* Brand */}
-        <div style={styles.brand}>
-          <div style={styles.brandMark}>J</div>
-          <div style={styles.brandName}>Johan's Finance</div>
-          <div style={styles.brandSub}>Personal budget &amp; cash book</div>
+        <div className="login-brand" style={styles.brand}>
+          <div className="login-brand-mark" style={styles.brandMark}>
+            J
+          </div>
+          <div className="login-brand-name" style={styles.brandName}>
+            Johan's Finance
+          </div>
+          <div className="login-brand-sub" style={styles.brandSub}>
+            Personal budget &amp; cash book
+          </div>
+        </div>
+
+        {/* Mobile-only preview strip — shown via CSS at ≤600px */}
+        <div className="login-mobile-preview">
+          <div className="mob-stat">
+            <div className="mob-stat-lbl">Remaining · Mar 2026</div>
+            <div className="mob-stat-val">21 786 kr</div>
+            <div className="mob-stat-bar">
+              <div
+                className="mob-stat-fill"
+                style={{ width: "86%", background: "var(--accent)" }}
+              />
+            </div>
+            <div className="mob-stat-sub">86% variable room · 6 days left</div>
+          </div>
+          <div className="mob-txs">
+            <div className="mob-txs-lbl">Recent</div>
+            {[
+              {
+                icon: "🛒",
+                name: "ICA Maxi",
+                amt: "−450",
+                color: "var(--red)",
+                bg: "rgba(255,107,107,.11)",
+              },
+              {
+                icon: "💪",
+                name: "Gym",
+                amt: "−848",
+                color: "var(--red)",
+                bg: "rgba(255,107,107,.11)",
+              },
+              {
+                icon: "💰",
+                name: "Lön mars",
+                amt: "+45 000",
+                color: "var(--green)",
+                bg: "rgba(81,207,102,.11)",
+              },
+            ].map((tx) => (
+              <div className="mob-tx" key={tx.name}>
+                <div className="mob-tx-icon" style={{ background: tx.bg }}>
+                  {tx.icon}
+                </div>
+                <span className="mob-tx-name">{tx.name}</span>
+                <span className="mob-tx-amt" style={{ color: tx.color }}>
+                  {tx.amt}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Card */}
-        <div style={styles.loginCard}>
-          <div style={styles.cardTitle}>Sign in</div>
-          <div style={styles.cardSub}>
+        <div className="login-card" style={styles.loginCard}>
+          <div className="login-card-title" style={styles.cardTitle}>
+            Sign in
+          </div>
+          <div className="login-card-sub" style={styles.cardSub}>
             Enter your credentials to access your account
           </div>
 
@@ -186,6 +252,7 @@ export function LoginPage() {
                     </div>
                     <input
                       autoComplete="email"
+                      className="login-field-input"
                       id="login-email"
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
@@ -236,6 +303,7 @@ export function LoginPage() {
                     </div>
                     <input
                       autoComplete="current-password"
+                      className="login-field-input"
                       id="login-password"
                       onBlur={field.handleBlur}
                       onChange={(e) => field.handleChange(e.target.value)}
@@ -302,6 +370,7 @@ export function LoginPage() {
 
             {/* Submit button */}
             <button
+              className="login-submit"
               disabled={isLoading}
               style={{
                 ...styles.submitBtn,
@@ -331,7 +400,7 @@ export function LoginPage() {
         </div>
 
         {/* Private badge */}
-        <div style={styles.privateBadge}>
+        <div className="login-badge" style={styles.privateBadge}>
           <div style={styles.privateBadgeDot} />
           <span style={styles.privateBadgeText}>
             Private application · Access by invitation only
@@ -340,7 +409,7 @@ export function LoginPage() {
       </div>
 
       {/* Right panel — feature highlights */}
-      <div style={styles.rightPanel}>
+      <div className="login-right" style={styles.rightPanel}>
         <div style={{ ...styles.previewTitle, textAlign: "left" }}>
           What&apos;s inside
         </div>
@@ -376,6 +445,52 @@ export function LoginPage() {
           title="Installable PWA"
         />
       </div>
+
+      <style>{`
+        /* Mobile preview strip — hidden by default, shown at ≤600px */
+        .login-mobile-preview { display: none; gap: 10px; width: 100%; margin-bottom: 12px; }
+        .mob-stat { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 12px 14px; }
+        .mob-stat-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--text-3); margin-bottom: 5px; }
+        .mob-stat-val { font-size: 19px; font-weight: 900; letter-spacing: -.6px; font-variant-numeric: tabular-nums; color: var(--accent-soft); }
+        .mob-stat-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 7px; overflow: hidden; }
+        .mob-stat-fill { height: 100%; border-radius: 2px; }
+        .mob-stat-sub { font-size: 9px; color: var(--text-3); margin-top: 4px; }
+        .mob-txs { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 10px 12px; display: flex; flex-direction: column; }
+        .mob-txs-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .7px; color: var(--text-3); margin-bottom: 6px; }
+        .mob-tx { display: flex; align-items: center; gap: 7px; padding: 4px 0; border-bottom: 1px solid var(--border-sub); }
+        .mob-tx:last-child { border-bottom: none; }
+        .mob-tx-icon { width: 22px; height: 22px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+        .mob-tx-name { font-size: 11px; font-weight: 600; flex: 1; }
+        .mob-tx-amt { font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+        /* Tablet ≤1000px: hide panels, single column */
+        @media (max-width: 1000px) {
+          .login-page { grid-template-columns: 1fr !important; padding: 32px 24px; justify-items: center; }
+          .login-left, .login-right { display: none; }
+          .login-center { grid-column: 1; max-width: 460px; width: 100%; }
+        }
+
+        /* Mobile ≤600px: full redesign */
+        @media (max-width: 600px) {
+          .login-page { display: flex !important; flex-direction: column; align-items: center; justify-content: flex-start; padding: 28px 16px 100px !important; min-height: 100dvh; gap: 0; }
+          .login-orb-1 { width: 260px !important; height: 260px !important; top: -60px !important; left: -60px !important; }
+          .login-orb-2 { width: 220px !important; height: 220px !important; }
+          .login-orb-3 { display: none !important; }
+          .login-left, .login-right { display: none; }
+          .login-center { width: 100% !important; max-width: 100% !important; display: flex !important; flex-direction: column; align-items: stretch; }
+          .login-brand { flex-direction: row !important; align-items: center !important; gap: 12px !important; margin-bottom: 20px !important; align-self: flex-start; }
+          .login-brand-mark { width: 42px !important; height: 42px !important; border-radius: 11px !important; font-size: 18px !important; }
+          .login-brand-name { font-size: 15px !important; }
+          .login-brand-sub { font-size: 11px !important; margin-top: 0 !important; }
+          .login-mobile-preview { display: flex; }
+          .login-card { padding: 22px 18px !important; border-radius: 20px !important; }
+          .login-card-title { font-size: 18px !important; }
+          .login-card-sub { font-size: 12px !important; margin-bottom: 20px !important; }
+          .login-field-input { height: 48px !important; font-size: 15px !important; }
+          .login-submit { height: 50px !important; font-size: 15px !important; border-radius: 14px !important; letter-spacing: -.1px !important; }
+          .login-badge { align-self: center !important; margin-top: 16px !important; }
+        }
+      `}</style>
     </div>
   );
 }
@@ -450,6 +565,7 @@ const styles = {
     alignItems: "center",
     justifyItems: "center",
     minHeight: "100vh",
+    width: "100%",
     padding: "32px 24px",
     position: "relative" as const,
     overflow: "hidden",
