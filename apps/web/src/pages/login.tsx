@@ -36,7 +36,7 @@ export function LoginPage() {
   const isError = serverError !== null;
 
   return (
-    <div style={styles.page}>
+    <div className="login-page" style={styles.page}>
       {/* Background dot grid */}
       <div style={styles.dotGrid} />
 
@@ -46,7 +46,7 @@ export function LoginPage() {
       <div style={{ ...styles.orb, ...styles.orb3 }} />
 
       {/* Left panel — mini app preview */}
-      <div style={styles.leftPanel}>
+      <div className="login-left" style={styles.leftPanel}>
         <div style={styles.previewTitle}>Your finances, at a glance</div>
         <div style={styles.previewStack}>
           {/* Remaining stat card */}
@@ -118,7 +118,7 @@ export function LoginPage() {
       </div>
 
       {/* Center — login card */}
-      <div style={styles.loginWrap}>
+      <div className="login-center" style={styles.loginWrap}>
         {/* Brand */}
         <div style={styles.brand}>
           <div style={styles.brandMark}>J</div>
@@ -340,7 +340,7 @@ export function LoginPage() {
       </div>
 
       {/* Right panel — feature highlights */}
-      <div style={styles.rightPanel}>
+      <div className="login-right" style={styles.rightPanel}>
         <div style={{ ...styles.previewTitle, textAlign: "left" }}>
           What&apos;s inside
         </div>
@@ -376,6 +376,25 @@ export function LoginPage() {
           title="Installable PWA"
         />
       </div>
+
+      <style>{`
+        @media (max-width: 960px) {
+          .login-page {
+            grid-template-columns: 1fr;
+            padding: 24px 16px;
+          }
+          .login-left,
+          .login-right {
+            display: none;
+          }
+          .login-center {
+            grid-column: 1;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+          }
+        }
+      `}</style>
     </div>
   );
 }
