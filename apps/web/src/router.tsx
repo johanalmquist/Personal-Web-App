@@ -1,12 +1,12 @@
 import {
-  createRootRouteWithContext,
+  createRootRoute,
   createRoute,
   createRouter,
   Navigate,
   Outlet,
 } from "@tanstack/react-router";
 import { AppShell } from "./components/app-shell/app-shell";
-import type { AuthContextValue } from "./contexts/auth-context";
+import { useAuth } from "./contexts/auth-context";
 import { DashboardPage } from "./pages/dashboard";
 import { ExportPage } from "./pages/export";
 import { LoginPage } from "./pages/login";
@@ -17,12 +17,8 @@ import { PreRegisteredPage } from "./pages/pre-registered";
 import { TagsPage } from "./pages/tags";
 import { TransactionsPage } from "./pages/transactions";
 
-interface RouterContext {
-  auth: AuthContextValue;
-}
-
 // Root route
-const rootRoute = createRootRouteWithContext<RouterContext>()({
+const rootRoute = createRootRoute({
   component: () => <Outlet />,
 });
 
@@ -41,7 +37,7 @@ const protectedLayoutRoute = createRoute({
 });
 
 function ProtectedLayout() {
-  const { auth } = protectedLayoutRoute.useRouteContext();
+  const auth = useAuth();
 
   if (auth.isLoading) {
     return (
@@ -56,7 +52,7 @@ function ProtectedLayout() {
           fontSize: 14,
         }}
       >
-        Loading…
+        Loading auth…
       </div>
     );
   }
@@ -138,10 +134,6 @@ const routeTree = rootRoute.addChildren([
 
 export const router = createRouter({
   routeTree,
-  context: {
-    // biome-ignore lint/style/noNonNullAssertion: TanStack Router requires a placeholder; auth is injected at runtime via RouterProvider context prop
-    auth: undefined!,
-  },
 });
 
 declare module "@tanstack/react-router" {
