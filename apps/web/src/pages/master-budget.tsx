@@ -232,8 +232,6 @@ export function MasterBudgetPage() {
   return (
     <div
       style={{
-        maxWidth: 860,
-        margin: "0 auto",
         display: "flex",
         flexDirection: "column",
         gap: 12,
