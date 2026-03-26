@@ -4,14 +4,13 @@ import { Topbar } from "./topbar";
 
 interface AppShellProps {
   children: React.ReactNode;
-  topbarActions?: React.ReactNode;
 }
 
-export function AppShell({ children, topbarActions }: AppShellProps) {
+export function AppShell({ children }: AppShellProps) {
   return (
     <>
       <Sidebar />
-      <Topbar actions={topbarActions} />
+      <Topbar />
       <BottomTabBar />
       <main
         className="app-content"

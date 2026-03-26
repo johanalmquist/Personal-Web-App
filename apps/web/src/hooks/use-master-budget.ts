@@ -4,6 +4,7 @@ import type {
   MasterBudgetResponse,
   UpdateCategory,
   UpdateMasterItem,
+  UpdateSettings,
 } from "@personal/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
@@ -126,6 +127,32 @@ export function useDeleteMasterItem(opts?: { onSuccess?: () => void }) {
   return useMutation({
     mutationFn: (id: string) => api.delete(`/api/v1/budget/master/items/${id}`),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: MASTER_KEY });
+      opts?.onSuccess?.();
+    },
+  });
+}
+
+export function useUpdateMasterSettings(opts?: { onSuccess?: () => void }) {
+  return useMutation({
+    mutationFn: (body: UpdateSettings) =>
+      api.put("/api/v1/budget/master/settings", body),
+    onMutate: async ({ monthly_income }) => {
+      await queryClient.cancelQueries({ queryKey: MASTER_KEY });
+      const previous =
+        queryClient.getQueryData<MasterBudgetResponse>(MASTER_KEY);
+      queryClient.setQueryData<MasterBudgetResponse>(MASTER_KEY, (old) => {
+        if (!old) {
+          return old;
+        }
+        return { ...old, settings: { monthly_income } };
+      });
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      queryClient.setQueryData(MASTER_KEY, ctx?.previous);
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: MASTER_KEY });
       opts?.onSuccess?.();
     },

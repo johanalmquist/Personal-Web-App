@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { AppShell } from "./components/app-shell/app-shell";
 import { useAuth } from "./contexts/auth-context";
+import { TopbarActionsProvider } from "./contexts/topbar-actions-context";
 import { DashboardPage } from "./pages/dashboard";
 import { ExportPage } from "./pages/export";
 import { LoginPage } from "./pages/login";
@@ -62,9 +63,11 @@ function ProtectedLayout() {
   }
 
   return (
-    <AppShell>
-      <Outlet />
-    </AppShell>
+    <TopbarActionsProvider>
+      <AppShell>
+        <Outlet />
+      </AppShell>
+    </TopbarActionsProvider>
   );
 }
 

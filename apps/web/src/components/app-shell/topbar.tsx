@@ -1,5 +1,6 @@
 import { useLocation } from "@tanstack/react-router";
 import { useAuth } from "../../contexts/auth-context";
+import { useTopbarActionsSlot } from "../../contexts/topbar-actions-context";
 
 const pathLabels: Record<string, string> = {
   "": "Finance",
@@ -72,12 +73,9 @@ function Breadcrumb({ pathname }: { pathname: string }) {
   );
 }
 
-interface TopbarProps {
-  actions?: React.ReactNode;
-}
-
-export function Topbar({ actions }: TopbarProps) {
+export function Topbar() {
   const { user } = useAuth();
+  const actions = useTopbarActionsSlot();
   const location = useLocation();
   const isDashboard = location.pathname === "/";
 
