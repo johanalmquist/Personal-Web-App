@@ -450,6 +450,7 @@ const styles = {
     alignItems: "center",
     justifyItems: "center",
     minHeight: "100vh",
+    width: "100%",
     padding: "32px 24px",
     position: "relative" as const,
     overflow: "hidden",
